@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cbdd32c5ef2f844cbf2072ca6ae9ddb, type: 3}
   m_Name: Walkable_Dirt
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 2507624514029367487, guid: 2a43b5ca87e5ba3449b56b9267a15fca, type: 3}
+  Prefab: {fileID: 5903429815859867414, guid: 2a43b5ca87e5ba3449b56b9267a15fca, type: 3}
   IsWall: 0

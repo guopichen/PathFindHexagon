@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cbdd32c5ef2f844cbf2072ca6ae9ddb, type: 3}
   m_Name: Walkable_Stone
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 2103450216979396230, guid: eb38dbd5b83e8364d918c7739c2fb0ec, type: 3}
+  Prefab: {fileID: 7931148754953480495, guid: eb38dbd5b83e8364d918c7739c2fb0ec, type: 3}
   IsWall: 0

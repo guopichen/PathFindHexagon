@@ -1,11 +1,71 @@
 fileFormatVersion: 2
 guid: 309444ad136d9624e980e054f24df7c6
 ModelImporter:
-  serializedVersion: 19300
-  internalIDToNameTable: []
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: fence
+    100004: fence 1
+    100006: fence 2
+    100008: fence 3
+    100010: sheep
+    100012: sheep 1
+    100014: sheep 2
+    100016: sheep 3
+    100018: sheep 4
+    100020: sheep 5
+    400000: //RootNode
+    400002: fence
+    400004: fence 1
+    400006: fence 2
+    400008: fence 3
+    400010: sheep
+    400012: sheep 1
+    400014: sheep 2
+    400016: sheep 3
+    400018: sheep 4
+    400020: sheep 5
+    2100000: dirt
+    2100002: grass
+    2100004: dark
+    2100006: wool
+    2300000: //RootNode
+    2300002: fence
+    2300004: fence 1
+    2300006: fence 2
+    2300008: fence 3
+    2300010: sheep
+    2300012: sheep 1
+    2300014: sheep 2
+    2300016: sheep 3
+    2300018: sheep 4
+    2300020: sheep 5
+    3300000: //RootNode
+    3300002: fence
+    3300004: fence 1
+    3300006: fence 2
+    3300008: fence 3
+    3300010: sheep
+    3300012: sheep 1
+    3300014: sheep 2
+    3300016: sheep 3
+    3300018: sheep 4
+    3300020: sheep 5
+    4300000: building_sheep
+    4300002: fence
+    4300004: fence
+    4300006: fence
+    4300008: fence
+    4300010: sheep
+    4300012: sheep
+    4300014: sheep
+    4300016: sheep
+    4300018: sheep
+    4300020: sheep
+    9500000: //RootNode
   externalObjects: {}
   materials:
-    materialImportMode: 1
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -38,7 +98,6 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
-    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -46,19 +105,18 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
+    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
-    skinWeightsMode: 0
-    maxBonesPerVertex: 4
-    minBoneWeight: 0.001
-    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 0.099999994
+    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -67,10 +125,10 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips: []
   importAnimation: 1
+  copyAvatar: 0
   humanDescription:
-    serializedVersion: 3
+    serializedVersion: 2
     human: []
     skeleton: []
     armTwist: 0.5
@@ -80,16 +138,13 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 

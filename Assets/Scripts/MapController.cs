@@ -42,6 +42,8 @@ namespace PathFind
                 var go = Instantiate(prefabItem.Prefab, position, Quaternion.identity);
                 go.transform.SetParent(transform);
                 var cellView = go.GetComponent<CellView>();
+                if (cellView == null)
+                    cellView = go.AddComponent<CellView>();
                 cellView.SetPoint(point);
                 _cellsView[point] = cellView;
             }

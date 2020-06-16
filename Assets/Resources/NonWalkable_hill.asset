@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cbdd32c5ef2f844cbf2072ca6ae9ddb, type: 3}
   m_Name: NonWalkable_hill
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 2698078827264976104, guid: 2ddceb7c4ca9eda408b7a19c138cc316, type: 3}
+  Prefab: {fileID: 8939791861659453141, guid: be655bac321b4344ab3d22e58bd0b1ea, type: 3}
   IsWall: 1

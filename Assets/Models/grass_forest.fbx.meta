@@ -1,11 +1,61 @@
 fileFormatVersion: 2
 guid: 84ecd119f9f3ac54f9038e10fa711433
 ModelImporter:
-  serializedVersion: 19300
-  internalIDToNameTable: []
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: tree
+    100004: tree 1
+    100006: tree 2
+    100008: tree 3
+    100010: tree 4
+    100012: tree 5
+    100014: tree 6
+    100016: tree 7
+    400000: //RootNode
+    400002: tree
+    400004: tree 1
+    400006: tree 2
+    400008: tree 3
+    400010: tree 4
+    400012: tree 5
+    400014: tree 6
+    400016: tree 7
+    2100000: dirt
+    2100002: grass
+    2100004: foliage
+    2100006: wood
+    2300000: //RootNode
+    2300002: tree
+    2300004: tree 1
+    2300006: tree 2
+    2300008: tree 3
+    2300010: tree 4
+    2300012: tree 5
+    2300014: tree 6
+    2300016: tree 7
+    3300000: //RootNode
+    3300002: tree
+    3300004: tree 1
+    3300006: tree 2
+    3300008: tree 3
+    3300010: tree 4
+    3300012: tree 5
+    3300014: tree 6
+    3300016: tree 7
+    4300000: grass_forest
+    4300002: tree
+    4300004: tree
+    4300006: tree
+    4300008: tree
+    4300010: tree
+    4300012: tree
+    4300014: tree
+    4300016: tree
+    9500000: //RootNode
   externalObjects: {}
   materials:
-    materialImportMode: 1
+    importMaterials: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -38,7 +88,6 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
-    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -46,19 +95,18 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
+    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
-    skinWeightsMode: 0
-    maxBonesPerVertex: 4
-    minBoneWeight: 0.001
-    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 0.099999994
+    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -67,10 +115,10 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  referencedClips: []
   importAnimation: 1
+  copyAvatar: 0
   humanDescription:
-    serializedVersion: 3
+    serializedVersion: 2
     human: []
     skeleton: []
     armTwist: 0.5
@@ -80,16 +128,13 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 

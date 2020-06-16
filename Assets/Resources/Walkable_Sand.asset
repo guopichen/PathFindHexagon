@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cbdd32c5ef2f844cbf2072ca6ae9ddb, type: 3}
   m_Name: Walkable_Sand
   m_EditorClassIdentifier: 
-  Prefab: {fileID: 2088676185145486875, guid: 5c8c7c4c38bcbe84cb191ba398c9e864, type: 3}
+  Prefab: {fileID: 8060769310830031282, guid: 5c8c7c4c38bcbe84cb191ba398c9e864, type: 3}
   IsWall: 0

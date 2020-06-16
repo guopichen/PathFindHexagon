@@ -36,9 +36,11 @@ namespace PathFind
 
         private CellView Raycast(Ray ray)
         {
+            Debug.DrawRay(ray.origin,ray.direction,Color.red);
+            
             var result = default(CellView);
             RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray,out hit, 100f))
             {
                 result = hit.transform.GetComponent<CellView>();
             }
