@@ -121,6 +121,8 @@ namespace PathFind
                     current = current.Parent;
                     findPath.Add(current);
                 }
+
+                findPath.Reverse();
             }
 
             //Reset
@@ -135,5 +137,45 @@ namespace PathFind
 
             return findPath;
         }
+    }
+}
+
+
+public static class ExtendFunc
+{
+    public static List<Vector2Int> GetCellNeighbor(this Vector2Int minOpened)
+    {
+        List<Vector2Int> result = new List<Vector2Int>();
+        if (minOpened.y % 2 != 0)
+        {
+            var n1 = new Vector2Int(minOpened.x, minOpened.y - 1);
+            var n2 = new Vector2Int(minOpened.x + 1, minOpened.y - 1);
+            var n3 = new Vector2Int(minOpened.x - 1, minOpened.y);
+            var n4 = new Vector2Int(minOpened.x + 1, minOpened.y);
+            var n5 = new Vector2Int(minOpened.x, minOpened.y + 1);
+            var n6 = new Vector2Int(minOpened.x + 1, minOpened.y + 1);
+            result.Add(n1);
+            result.Add(n2);
+            result.Add(n3);
+            result.Add(n4);
+            result.Add(n5);
+            result.Add(n6);
+        }
+        else
+        {
+            var n1 = new Vector2Int(minOpened.x - 1, minOpened.y - 1);
+            var n2 = new Vector2Int(minOpened.x, minOpened.y - 1);
+            var n3 = new Vector2Int(minOpened.x - 1, minOpened.y);
+            var n4 = new Vector2Int(minOpened.x + 1, minOpened.y);
+            var n5 = new Vector2Int(minOpened.x - 1, minOpened.y + 1);
+            var n6 = new Vector2Int(minOpened.x, minOpened.y + 1);
+            result.Add(n1);
+            result.Add(n2);
+            result.Add(n3);
+            result.Add(n4);
+            result.Add(n5);
+            result.Add(n6);
+        }
+        return result;
     }
 }

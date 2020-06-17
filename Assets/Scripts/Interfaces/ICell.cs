@@ -17,5 +17,7 @@ namespace PathFind
         void SetWeight(int weight);
         void SetHeuristic(int heuristic);
         void SetDistance(int distance);
+        int Col { get; }
+        int Row { get; }
     }
 }

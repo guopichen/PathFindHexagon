@@ -12,11 +12,27 @@ namespace PathFind
         public int Distance { get; private set; }
         public int Summ => (Distance + Heuristic) * Weight;
 
+        public int Col { get; private set; }
+
+        public int Row { get; private set; }
+
         public Cell(Vector2Int point)
         {
             Point = point;
+            this.Col = point.x;
+            this.Row = point.y;
+            Weight = 1;
+
+        }
+
+        public Cell(Vector2Int point,int ColX,int RowY)
+        {
+            Point = point;
+            this.Col = ColX;
+            this.Row = RowY;
             Weight = 1;
         }
+
 
         public void SetParent(ICell parent)
         {
