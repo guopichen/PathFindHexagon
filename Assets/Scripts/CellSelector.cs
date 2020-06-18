@@ -20,6 +20,7 @@ namespace PathFind
 
         private void Update()
         {
+#if Test
             var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : Input.GetMouseButtonDown(1) ? MouseButton.Right : MouseButton.None;
             if (mouseButton != MouseButton.None)
             {
@@ -32,19 +33,40 @@ namespace PathFind
                     if (mouseButton == MouseButton.Right) OnEndPoint?.Invoke(point);
                 }
             }
+#else
+            var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : MouseButton.None;
+            if (mouseButton != MouseButton.None)
+            {
+                var ray = m_camera.ScreenPointToRay(Input.mousePosition);
+                var cell = Raycast(ray);
+                if (cell != null)
+                {
+                    var point = cell.GetPoint();
+                    OnEndPoint?.Invoke(point);
+                }
+            }
+#endif
+
+
         }
 
         private CellView Raycast(Ray ray)
         {
-            Debug.DrawRay(ray.origin,ray.direction,Color.red);
-            
+            Debug.DrawRay(ray.origin, ray.direction, Color.red);
+
             var result = default(CellView);
             RaycastHit hit;
-            if (Physics.Raycast(ray,out hit, 100f))
+            if (Physics.Raycast(ray, out hit, 100f))
             {
                 result = hit.transform.GetComponent<CellView>();
             }
             return result;
+        }
+
+
+        public void SetStartPointManually(Vector2Int point)
+        {
+            OnStartPoint?.Invoke(point);
         }
 
     }

@@ -1,50 +1,134 @@
 fileFormatVersion: 2
 guid: 57436edb6b4d2e543bb3ce0fe6fba699
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: building
-    100002: //RootNode
-    100004: dock
-    100006: path
-    100008: path 1
-    100010: tree
-    100012: tree 1
-    400000: building
-    400002: //RootNode
-    400004: dock
-    400006: path
-    400008: path 1
-    400010: tree
-    400012: tree 1
-    2100000: dirt
-    2100002: grass
-    2100004: water
-    2100006: roof
-    2100008: wood
-    2100010: foliage
-    2300000: building
-    2300002: //RootNode
-    2300004: dock
-    2300006: path
-    2300008: path 1
-    2300010: tree
-    2300012: tree 1
-    3300000: building
-    3300002: //RootNode
-    3300004: dock
-    3300006: path
-    3300008: path 1
-    3300010: tree
-    3300012: tree 1
-    4300000: building_dock
-    4300002: building
-    4300004: dock
-    4300006: path
-    4300008: path
-    4300010: tree
-    4300012: tree
-    9500000: //RootNode
+  serializedVersion: 26
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: building
+  - first:
+      1: 100002
+    second: //RootNode
+  - first:
+      1: 100004
+    second: dock
+  - first:
+      1: 100006
+    second: path
+  - first:
+      1: 100008
+    second: path 1
+  - first:
+      1: 100010
+    second: tree
+  - first:
+      1: 100012
+    second: tree 1
+  - first:
+      4: 400000
+    second: building
+  - first:
+      4: 400002
+    second: //RootNode
+  - first:
+      4: 400004
+    second: dock
+  - first:
+      4: 400006
+    second: path
+  - first:
+      4: 400008
+    second: path 1
+  - first:
+      4: 400010
+    second: tree
+  - first:
+      4: 400012
+    second: tree 1
+  - first:
+      21: 2100000
+    second: dirt
+  - first:
+      21: 2100002
+    second: grass
+  - first:
+      21: 2100004
+    second: water
+  - first:
+      21: 2100006
+    second: roof
+  - first:
+      21: 2100008
+    second: wood
+  - first:
+      21: 2100010
+    second: foliage
+  - first:
+      23: 2300000
+    second: building
+  - first:
+      23: 2300002
+    second: //RootNode
+  - first:
+      23: 2300004
+    second: dock
+  - first:
+      23: 2300006
+    second: path
+  - first:
+      23: 2300008
+    second: path 1
+  - first:
+      23: 2300010
+    second: tree
+  - first:
+      23: 2300012
+    second: tree 1
+  - first:
+      33: 3300000
+    second: building
+  - first:
+      33: 3300002
+    second: //RootNode
+  - first:
+      33: 3300004
+    second: dock
+  - first:
+      33: 3300006
+    second: path
+  - first:
+      33: 3300008
+    second: path 1
+  - first:
+      33: 3300010
+    second: tree
+  - first:
+      33: 3300012
+    second: tree 1
+  - first:
+      43: 4300000
+    second: building_dock
+  - first:
+      43: 4300002
+    second: building
+  - first:
+      43: 4300004
+    second: dock
+  - first:
+      43: 4300006
+    second: path
+  - first:
+      43: 4300008
+    second: path
+  - first:
+      43: 4300010
+    second: tree
+  - first:
+      43: 4300012
+    second: tree
+  - first:
+      95: 9500000
+    second: //RootNode
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -80,6 +164,7 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -87,18 +172,19 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 0.099999994
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -107,10 +193,11 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
+  referencedClips: []
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -120,6 +207,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

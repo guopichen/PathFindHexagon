@@ -7,7 +7,6 @@ namespace PathFind
     public class Map : IMap
     {
         public static bool randowWall = false;
-        public static Map Instance = null;
 
 
         private Dictionary<Vector2Int, ICell> _cells;
@@ -54,7 +53,6 @@ namespace PathFind
 
 
 
-            Instance = this;
         }
 
         public Vector2Int GetMapSize() => _mapSize;

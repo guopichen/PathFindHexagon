@@ -24,6 +24,7 @@ namespace PathFind
 
         private void Start()
         {
+            GameCore.RegistOtherServices<MapController>(this);
             m_cellSelector.OnStartPoint += OnSetPointStart;
             m_cellSelector.OnEndPoint += OnSetPointEnd;
 
@@ -56,7 +57,9 @@ namespace PathFind
         {
             _cellStart = _map.GetCell(point);
             OnStartCellSelect?.Invoke(_cellStart);
+#if TEST
             Calculate();
+#endif
         }
 
         void OnSetPointEnd(Vector2Int point)
@@ -85,6 +88,22 @@ namespace PathFind
                 return view;
             }
             return null;
+        }
+
+
+        public void SetStartPoint(Vector2Int start)
+        {
+            m_cellSelector.SetStartPointManually(start);
+        }
+
+        public IMap GetMap()
+        {
+            return _map;
+        }
+
+        public IPathFinder GetPathFinder()
+        {
+            return _pathFinder;
         }
     }
 }

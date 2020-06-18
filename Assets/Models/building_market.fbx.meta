@@ -1,66 +1,182 @@
 fileFormatVersion: 2
 guid: 1ae8dce4156a62948b5a1635103bc960
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: //RootNode
-    100002: crate
-    100004: crate 1
-    100006: fence
-    100008: stall
-    100010: stall 1
-    100012: tree
-    100014: tree 1
-    100016: tree 2
-    100018: well
-    400000: //RootNode
-    400002: crate
-    400004: crate 1
-    400006: fence
-    400008: stall
-    400010: stall 1
-    400012: tree
-    400014: tree 1
-    400016: tree 2
-    400018: well
-    2100000: grass
-    2100002: dirt
-    2100004: stone
-    2100006: roof
-    2100008: foliage
-    2100010: wood
-    2100012: water
-    2300000: //RootNode
-    2300002: crate
-    2300004: crate 1
-    2300006: fence
-    2300008: stall
-    2300010: stall 1
-    2300012: tree
-    2300014: tree 1
-    2300016: tree 2
-    2300018: well
-    3300000: //RootNode
-    3300002: crate
-    3300004: crate 1
-    3300006: fence
-    3300008: stall
-    3300010: stall 1
-    3300012: tree
-    3300014: tree 1
-    3300016: tree 2
-    3300018: well
-    4300000: building_market
-    4300002: crate
-    4300004: crate
-    4300006: fence
-    4300008: stall
-    4300010: stall
-    4300012: tree
-    4300014: tree
-    4300016: tree
-    4300018: well
-    9500000: //RootNode
+  serializedVersion: 26
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: //RootNode
+  - first:
+      1: 100002
+    second: crate
+  - first:
+      1: 100004
+    second: crate 1
+  - first:
+      1: 100006
+    second: fence
+  - first:
+      1: 100008
+    second: stall
+  - first:
+      1: 100010
+    second: stall 1
+  - first:
+      1: 100012
+    second: tree
+  - first:
+      1: 100014
+    second: tree 1
+  - first:
+      1: 100016
+    second: tree 2
+  - first:
+      1: 100018
+    second: well
+  - first:
+      4: 400000
+    second: //RootNode
+  - first:
+      4: 400002
+    second: crate
+  - first:
+      4: 400004
+    second: crate 1
+  - first:
+      4: 400006
+    second: fence
+  - first:
+      4: 400008
+    second: stall
+  - first:
+      4: 400010
+    second: stall 1
+  - first:
+      4: 400012
+    second: tree
+  - first:
+      4: 400014
+    second: tree 1
+  - first:
+      4: 400016
+    second: tree 2
+  - first:
+      4: 400018
+    second: well
+  - first:
+      21: 2100000
+    second: grass
+  - first:
+      21: 2100002
+    second: dirt
+  - first:
+      21: 2100004
+    second: stone
+  - first:
+      21: 2100006
+    second: roof
+  - first:
+      21: 2100008
+    second: foliage
+  - first:
+      21: 2100010
+    second: wood
+  - first:
+      21: 2100012
+    second: water
+  - first:
+      23: 2300000
+    second: //RootNode
+  - first:
+      23: 2300002
+    second: crate
+  - first:
+      23: 2300004
+    second: crate 1
+  - first:
+      23: 2300006
+    second: fence
+  - first:
+      23: 2300008
+    second: stall
+  - first:
+      23: 2300010
+    second: stall 1
+  - first:
+      23: 2300012
+    second: tree
+  - first:
+      23: 2300014
+    second: tree 1
+  - first:
+      23: 2300016
+    second: tree 2
+  - first:
+      23: 2300018
+    second: well
+  - first:
+      33: 3300000
+    second: //RootNode
+  - first:
+      33: 3300002
+    second: crate
+  - first:
+      33: 3300004
+    second: crate 1
+  - first:
+      33: 3300006
+    second: fence
+  - first:
+      33: 3300008
+    second: stall
+  - first:
+      33: 3300010
+    second: stall 1
+  - first:
+      33: 3300012
+    second: tree
+  - first:
+      33: 3300014
+    second: tree 1
+  - first:
+      33: 3300016
+    second: tree 2
+  - first:
+      33: 3300018
+    second: well
+  - first:
+      43: 4300000
+    second: building_market
+  - first:
+      43: 4300002
+    second: crate
+  - first:
+      43: 4300004
+    second: crate
+  - first:
+      43: 4300006
+    second: fence
+  - first:
+      43: 4300008
+    second: stall
+  - first:
+      43: 4300010
+    second: stall
+  - first:
+      43: 4300012
+    second: tree
+  - first:
+      43: 4300014
+    second: tree
+  - first:
+      43: 4300016
+    second: tree
+  - first:
+      43: 4300018
+    second: well
+  - first:
+      95: 9500000
+    second: //RootNode
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -96,6 +212,7 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -103,18 +220,19 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 0.099999994
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -123,10 +241,11 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
+  referencedClips: []
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -136,6 +255,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

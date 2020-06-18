@@ -1,45 +1,119 @@
 fileFormatVersion: 2
 guid: 4d80960613c972645a19769876f99e9a
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: //RootNode
-    100002: rockLarge
-    100004: tree
-    100006: tree 1
-    100008: tree 2
-    100010: tree 3
-    400000: //RootNode
-    400002: rockLarge
-    400004: tree
-    400006: tree 1
-    400008: tree 2
-    400010: tree 3
-    2100000: dirt
-    2100002: grass
-    2100004: stone
-    2100006: _defaultMat
-    2100008: foliage
-    2100010: wood
-    2300000: //RootNode
-    2300002: rockLarge
-    2300004: tree
-    2300006: tree 1
-    2300008: tree 2
-    2300010: tree 3
-    3300000: //RootNode
-    3300002: rockLarge
-    3300004: tree
-    3300006: tree 1
-    3300008: tree 2
-    3300010: tree 3
-    4300000: grass_hill
-    4300002: rockLarge
-    4300004: tree
-    4300006: tree
-    4300008: tree
-    4300010: tree
-    9500000: //RootNode
+  serializedVersion: 26
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: //RootNode
+  - first:
+      1: 100002
+    second: rockLarge
+  - first:
+      1: 100004
+    second: tree
+  - first:
+      1: 100006
+    second: tree 1
+  - first:
+      1: 100008
+    second: tree 2
+  - first:
+      1: 100010
+    second: tree 3
+  - first:
+      4: 400000
+    second: //RootNode
+  - first:
+      4: 400002
+    second: rockLarge
+  - first:
+      4: 400004
+    second: tree
+  - first:
+      4: 400006
+    second: tree 1
+  - first:
+      4: 400008
+    second: tree 2
+  - first:
+      4: 400010
+    second: tree 3
+  - first:
+      21: 2100000
+    second: dirt
+  - first:
+      21: 2100002
+    second: grass
+  - first:
+      21: 2100004
+    second: stone
+  - first:
+      21: 2100006
+    second: _defaultMat
+  - first:
+      21: 2100008
+    second: foliage
+  - first:
+      21: 2100010
+    second: wood
+  - first:
+      23: 2300000
+    second: //RootNode
+  - first:
+      23: 2300002
+    second: rockLarge
+  - first:
+      23: 2300004
+    second: tree
+  - first:
+      23: 2300006
+    second: tree 1
+  - first:
+      23: 2300008
+    second: tree 2
+  - first:
+      23: 2300010
+    second: tree 3
+  - first:
+      33: 3300000
+    second: //RootNode
+  - first:
+      33: 3300002
+    second: rockLarge
+  - first:
+      33: 3300004
+    second: tree
+  - first:
+      33: 3300006
+    second: tree 1
+  - first:
+      33: 3300008
+    second: tree 2
+  - first:
+      33: 3300010
+    second: tree 3
+  - first:
+      43: 4300000
+    second: grass_hill
+  - first:
+      43: 4300002
+    second: rockLarge
+  - first:
+      43: 4300004
+    second: tree
+  - first:
+      43: 4300006
+    second: tree
+  - first:
+      43: 4300008
+    second: tree
+  - first:
+      43: 4300010
+    second: tree
+  - first:
+      95: 9500000
+    second: //RootNode
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -75,6 +149,7 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -82,18 +157,19 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 0.099999994
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -102,10 +178,11 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
+  referencedClips: []
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -115,6 +192,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

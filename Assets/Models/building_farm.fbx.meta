@@ -1,37 +1,95 @@
 fileFormatVersion: 2
 guid: 7810e1e13df101041a8c4895f01adfc9
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: //RootNode
-    100002: fence
-    100004: grain
-    100006: grainBundle
-    100008: grainBundle 1
-    400000: //RootNode
-    400002: fence
-    400004: grain
-    400006: grainBundle
-    400008: grainBundle 1
-    2100000: dirt
-    2100002: grass
-    2100004: sand
-    2300000: //RootNode
-    2300002: fence
-    2300004: grain
-    2300006: grainBundle
-    2300008: grainBundle 1
-    3300000: //RootNode
-    3300002: fence
-    3300004: grain
-    3300006: grainBundle
-    3300008: grainBundle 1
-    4300000: building_farm
-    4300002: fence
-    4300004: grain
-    4300006: grainBundle
-    4300008: grainBundle
-    9500000: //RootNode
+  serializedVersion: 26
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: //RootNode
+  - first:
+      1: 100002
+    second: fence
+  - first:
+      1: 100004
+    second: grain
+  - first:
+      1: 100006
+    second: grainBundle
+  - first:
+      1: 100008
+    second: grainBundle 1
+  - first:
+      4: 400000
+    second: //RootNode
+  - first:
+      4: 400002
+    second: fence
+  - first:
+      4: 400004
+    second: grain
+  - first:
+      4: 400006
+    second: grainBundle
+  - first:
+      4: 400008
+    second: grainBundle 1
+  - first:
+      21: 2100000
+    second: dirt
+  - first:
+      21: 2100002
+    second: grass
+  - first:
+      21: 2100004
+    second: sand
+  - first:
+      23: 2300000
+    second: //RootNode
+  - first:
+      23: 2300002
+    second: fence
+  - first:
+      23: 2300004
+    second: grain
+  - first:
+      23: 2300006
+    second: grainBundle
+  - first:
+      23: 2300008
+    second: grainBundle 1
+  - first:
+      33: 3300000
+    second: //RootNode
+  - first:
+      33: 3300002
+    second: fence
+  - first:
+      33: 3300004
+    second: grain
+  - first:
+      33: 3300006
+    second: grainBundle
+  - first:
+      33: 3300008
+    second: grainBundle 1
+  - first:
+      43: 4300000
+    second: building_farm
+  - first:
+      43: 4300002
+    second: fence
+  - first:
+      43: 4300004
+    second: grain
+  - first:
+      43: 4300006
+    second: grainBundle
+  - first:
+      43: 4300008
+    second: grainBundle
+  - first:
+      95: 9500000
+    second: //RootNode
   externalObjects: {}
   materials:
     importMaterials: 1
@@ -67,6 +125,7 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -74,18 +133,19 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 0.099999994
-    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -94,10 +154,11 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
+  referencedClips: []
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -107,6 +168,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

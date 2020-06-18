@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace PathFind
 {
@@ -13,11 +14,24 @@ namespace PathFind
         [SerializeField] private TMP_Text m_distanceValue;
 
 
+        [SerializeField]
+        private Button addPlayer;
+        [SerializeField]
+        private Button addNPC;
+        [SerializeField]
+        private Button runGameOrPauseGame;
+
+
+
         private void Start()
         {
             m_mapController.OnStartCellSelect += OnStartCellSelect;
             m_mapController.OnEndCellSelect += OnEndCellSelect;
             m_mapController.OnPathFind += OnFindPath;
+
+            addPlayer.onClick.AddListener(GameCore.SpawnPlayer);
+            addNPC.onClick.AddListener(GameCore.SpawnNPC);
+            runGameOrPauseGame.onClick.AddListener(GameCore.RunOrPauseCore);
         }
 
         private void OnFindPath(IList<ICell> path)

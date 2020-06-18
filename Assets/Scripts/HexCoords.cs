@@ -5,6 +5,12 @@ namespace PathFind
 {
     public static class HexCoords
     {
+        public static Vector3 GetHexVisualCoords(Vector2Int point)
+        {
+            return GetHexVisualCoords(point, GameCore.GetRegistServices<MapController>().GetMapSize());
+        }
+
+
         public const float CellHeight = 0.88f;
 
         public static Vector3 GetHexVisualCoords(Vector2Int point, Vector2Int mapSize)
