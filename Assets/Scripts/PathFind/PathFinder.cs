@@ -149,11 +149,11 @@ public static class ExtendFunc
         if (minOpened.y % 2 != 0)
         {
             var n1 = new Vector2Int(minOpened.x, minOpened.y - 1);
-            var n2 = new Vector2Int(minOpened.x + 1, minOpened.y - 1);
-            var n3 = new Vector2Int(minOpened.x - 1, minOpened.y);
-            var n4 = new Vector2Int(minOpened.x + 1, minOpened.y);
             var n5 = new Vector2Int(minOpened.x, minOpened.y + 1);
             var n6 = new Vector2Int(minOpened.x + 1, minOpened.y + 1);
+            var n2 = new Vector2Int(minOpened.x + 1, minOpened.y - 1);
+            var n4 = new Vector2Int(minOpened.x + 1, minOpened.y);
+            var n3 = new Vector2Int(minOpened.x - 1, minOpened.y);
             result.Add(n1);
             result.Add(n2);
             result.Add(n3);
@@ -163,12 +163,13 @@ public static class ExtendFunc
         }
         else
         {
-            var n1 = new Vector2Int(minOpened.x - 1, minOpened.y - 1);
             var n2 = new Vector2Int(minOpened.x, minOpened.y - 1);
-            var n3 = new Vector2Int(minOpened.x - 1, minOpened.y);
-            var n4 = new Vector2Int(minOpened.x + 1, minOpened.y);
-            var n5 = new Vector2Int(minOpened.x - 1, minOpened.y + 1);
             var n6 = new Vector2Int(minOpened.x, minOpened.y + 1);
+            var n4 = new Vector2Int(minOpened.x + 1, minOpened.y);
+
+            var n1 = new Vector2Int(minOpened.x - 1, minOpened.y - 1);
+            var n3 = new Vector2Int(minOpened.x - 1, minOpened.y);
+            var n5 = new Vector2Int(minOpened.x - 1, minOpened.y + 1);
             result.Add(n1);
             result.Add(n2);
             result.Add(n3);
@@ -176,6 +177,52 @@ public static class ExtendFunc
             result.Add(n5);
             result.Add(n6);
         }
+        return result;
+    }
+
+    public static List<Vector2Int> GetCellRingSides(this Vector2Int point,int R)
+    {
+        List<Vector2Int> result = new List<Vector2Int>();
+
+        if ( point.y % 2 !=0)
+        {
+            var left_down = new Vector2Int(point.x - R / 2, point.y - R);
+            var right_up = new Vector2Int(point.x + (R + 1) / 2, point.y + R);
+            var left_up = new Vector2Int(point.x - R, point.y);
+            var right_down = new Vector2Int(point.x + R, point.y);
+            var up = new Vector2Int(point.x - R / 2, point.y + R);
+            var down = new Vector2Int(point.x + (R + 1) / 2, point.y - R);
+
+            result.Add(up);
+            result.Add(right_up);
+            result.Add(right_down);
+            result.Add(down);
+            result.Add(left_down);
+            result.Add(left_up);
+
+            
+        }
+        else
+        {
+            var left_down = new Vector2Int(point.x - (R + 1) / 2, point.y - R);
+            var right_up = new Vector2Int(point.x + (R) / 2, point.y + R);
+            var left_up = new Vector2Int(point.x - R, point.y);
+            var right_down = new Vector2Int(point.x + R, point.y);
+            var up = new Vector2Int(point.x - (R + 1) / 2, point.y + R);
+            var down = new Vector2Int(point.x + R / 2, point.y - R);
+
+            result.Add(up);
+            result.Add(right_up);
+            result.Add(right_down);
+            result.Add(down);
+            result.Add(left_down);
+            result.Add(left_up);
+
+
+            
+        }
+
+
         return result;
     }
 }

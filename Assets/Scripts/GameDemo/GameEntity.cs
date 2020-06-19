@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -26,6 +27,9 @@ public interface GameEntityTransformRemote
 
 public partial class GameEntity : MonoBehaviour, GameEntityRemote
 {
+    private GameObject m_GameObject;
+    private Transform m_Transform;
+
     [SerializeField]
     private GameEntityConfig entityConfig = new GameEntityConfig() { maxSingleMove = 10 };
 
@@ -57,6 +61,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
 
     IEnumerator Start()
     {
+        m_Transform = this.transform;
+        m_GameObject = this.gameObject;
         yield return null;
         if (controllType == EntityControllStatus.Player)
         {
@@ -79,8 +85,30 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         var mapSize = mapController.GetMapSize();
         this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
         GameTimer.AwaitLoopSeconds(1, CalledEverySeconds).ForgetAwait();
+
+
+
+        if (controllType == EntityControllStatus.AI)
+        {
+            onReachDst += async () =>
+            {
+                await new WaitForSeconds(1);
+                randomMove();
+            };
+            randomMove();
+        }
     }
 
+
+    private void randomMove()
+    {
+        ICell fromcell = mapController.GetMap().GetCell(CurrentPoint);
+        ICell tocell = mapController.GetRandomCell();
+        IList<ICell> path = mapController.GetPathFinder().FindPathOnMap(fromcell, tocell, mapController.GetMap());
+        MoveAlongPath(path);
+    }
+
+    Action onReachDst = delegate { };
     IEnumerator workAsUpdate()
     {
         yield return null;
@@ -88,7 +116,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         while (true)
         {
             if (currentPath == null || currentPath.Count == 0)
+            {
+                if (currentPath?.Count == 0)
+                {
+                    currentPath = null;
+                    onReachDst();
+                }
                 yield return new WaitForSeconds(0.5f);
+            }
 
             if (currentPath != null && currentPath.Count > 0)
             {
@@ -140,7 +175,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         entityVisual.SetColor(Color.white);
     }
 
-    IEnumerator movefromApoint2Bpoint(ICell from, ICell to)
+    public IEnumerator movefromApoint2Bpoint(ICell from, ICell to)
     {
         var mapSize = mapController.GetMapSize();
         Vector3 fromVisualPos = HexCoords.GetHexVisualCoords(from.Point, mapSize);
@@ -149,8 +184,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         float total = 0.1f * 60;
         while (t < total)
         {
-            t += (0.1f * 10);
-            this.transform.LookAt(toVisualPos);
+            //t += (0.1f * 10) ;
+            t += (0.1f * entityConfig.speedFactor);
             if (t / total < 0.5)
             {
                 enterCellPoint(from.Point);
@@ -167,12 +202,40 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         }
     }
 
+    public async Task moveFromAtoB(ICell from, ICell to)
+    {
+        var mapSize = mapController.GetMapSize();
+        Vector3 fromVisualPos = HexCoords.GetHexVisualCoords(from.Point, mapSize);
+        Vector3 toVisualPos = HexCoords.GetHexVisualCoords(to.Point, mapSize);
+        float t = 0;
+        float total = 0.1f * 60;
+        while (t < total)
+        {
+            //t += (0.1f * 10) ;
+            t += (0.1f * entityConfig.speedFactor);
+            if (t / total < 0.5)
+            {
+                enterCellPoint(from.Point);
+            }
+            else
+            {
+                enterCellPoint(to.Point);
+            }
+
+            this.transform.position = Vector3.Lerp(fromVisualPos, toVisualPos, t / total);
+
+            await new WaitForEndOfFrame();
+        }
+    }
+
 
     private void enterCellPoint(Vector2Int point)
     {
-        if (currentCell == point)
+        if (currentCell.x == point.x && currentCell.y == point.y)
             return;
         currentCell = point;
+
+        this.transform.LookAt(HexCoords.GetHexVisualCoords(point));
         fireEntityEvent(entityEvent.enterNewCell);
     }
     private enum entityEvent
@@ -193,10 +256,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
             {
                 if (i + 1 > entityConfig.maxSingleMove)
                     path.RemoveAt(i);
+                else
+                    break;
             }
         }
         currentPath = path;
     }
+
+
 
     public bool IsEntityAtPoint(Vector2Int point)
     {
@@ -211,7 +278,60 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
     public void CalledEverySeconds()
     {
         runtimeData.tili += 5;
-        Debug.Log(this.gameObject.name);
+        runtimeData.cd1 += 1;
+        runtimeData.cd1 = Mathf.Clamp(runtimeData.cd1, -30, 0);
+
+        runtimeData.cd2 += 1;
+        runtimeData.cd2 = Mathf.Clamp(runtimeData.cd2, -30, 0);
+
+
+        runtimeData.cd3 += 1;
+        runtimeData.cd3 = Mathf.Clamp(runtimeData.cd3, -30, 0);
+
+
+    }
+
+    public bool PAttack(int i = 1)
+    {
+        bool cd = false;
+        if (i == 1)
+            cd = runtimeData.cd1 >= 0;
+        else if (i == 2)
+            cd = runtimeData.cd2 >= 0;
+        else if (i == 3)
+            cd = runtimeData.cd3 >= 0;
+        return cd && isTargetEntityInAttackSight();
+    }
+
+    private bool isTargetEntityInAttackSight()
+    {
+        if (entityConfig.attackSight == 1)
+            return targetEntity != null && CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
+        else
+        {
+
+            if (targetEntity != null)
+            {
+                if (HexCoords.GetHexCellByRadius(CurrentPoint, entityConfig.attackSight, ref attackSightArea))
+                {
+                    return attackSightArea.Contains(targetEntity.CurrentPoint);
+                }
+            }
+            return false;
+        }
+    }
+
+    public void DoAttack(int i = 1)
+    {
+        if (targetEntity != null)
+            this.m_Transform.LookAt(targetEntity.m_Transform.position);
+        this.entityVisual.PlayAttack(i);
+        if (i == 1)
+            runtimeData.cd1 -= 3;
+        else if (i == 2)
+            runtimeData.cd2 -= 5;
+        else if (i == 3)
+            runtimeData.cd3 -= 10;
     }
 
 }
@@ -244,13 +364,13 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
         }
     }
-    GameEntity targetEntity;
+    public GameEntity targetEntity { private set; get; }
     List<GameEntity> entityWhoAimAtMeSet = new List<GameEntity>();
 
     public void AimAtTargetEntity(GameEntity target)
     {
         this.targetEntity = target;
-        if(targetEntity != null)
+        if (targetEntity != null)
         {
             actionRemote.Action2Entity(targetEntity);
         }
@@ -265,7 +385,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if(controllType == EntityControllStatus.Player)
+        if (controllType == EntityControllStatus.Player)
         {
             if (SelectStatus == GameEntitySelectStatus.Selected)
             {
@@ -278,14 +398,14 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         }
         else
         {
-            GameEntity playerControllEntity = GameEntityMgr.GetSelectedEntity();
-            if(playerControllEntity != null)
+            GameEntity selected = GameEntityMgr.GetSelectedEntity();
+            if (selected != null && selected.controllType == EntityControllStatus.Player)
             {
-                playerControllEntity.AimAtTargetEntity(this);
-                this.NoticeBeAimed(playerControllEntity);
+                selected.AimAtTargetEntity(this);
+                this.NoticeBeAimed(selected);
             }
         }
-       
+
 
     }
 
@@ -298,6 +418,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
     }
 
     private static List<Vector2Int> eyeSightArea = new List<Vector2Int>();//用作公用
+    private static List<Vector2Int> attackSightArea = new List<Vector2Int>();
     void ShowEyeSight()
     {
         CleanLastEyeSight();
@@ -308,6 +429,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
     private void UpdateCurrentEyeSight()
     {
         HexCoords.GetHexCellByRadius(currentCell, entityConfig.eyeSight, ref eyeSightArea);
+        eyeSightArea = HexCoords.aa(currentCell, entityConfig.eyeSight, mapController.GetMap());
         foreach (Vector2Int v in eyeSightArea)
         {
             CellView cellview = mapController.GetCellView(v);
@@ -351,9 +473,15 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
 public class GameEntityVisual
 {
+    private GameObject rootGo;
+    private Transform rootTrans;
     public Material material;
+    Vector3 originalSize;
     public GameEntityVisual(GameObject modelObj)
     {
+        rootGo = modelObj;
+        rootTrans = modelObj.transform;
+        originalSize = rootTrans.localScale;
         material = modelObj.GetComponent<Renderer>().material;
     }
 
@@ -361,11 +489,18 @@ public class GameEntityVisual
     {
         material.SetColor("_Color", c);
     }
+
+    internal async void PlayAttack(int i = 1)
+    {
+        rootTrans.localScale = originalSize * 2;
+        await new WaitForSeconds(1);
+        rootTrans.localScale = originalSize;
+    }
 }
 
 
 [System.Serializable]
-public struct GameEntityConfig
+public class GameEntityConfig
 {
     public int hp_config;
     public int atk_config;
@@ -386,6 +521,10 @@ public struct GameEntityRuntimeData
     public float atk;
     public float mag;
     public float tili;
+
+    public float cd1;
+    public float cd2;
+    public float cd3;
 
     public float detlaTili;
     public float deltaTileTime;

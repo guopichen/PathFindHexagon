@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if UNITYEDITOR
+#define HTools
+#endif
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,12 +26,21 @@ public static class GameTimer
         action();
         AwaitLoopSeconds(seconds, action).ForgetAwait();
     }
+
+    public static async Task AwaitSeconds(float seconds,Task t,Action<Task> t2)
+    {
+        await new WaitForSeconds(seconds);
+        while (GameCore.GetGameStatus() != GameStatus.Run)
+            await new WaitForEndOfFrame();
+        t.ContinueWith(t2).ForgetAwait();
+    }
 }
 
 
 public static class HDebug
 {
-    [Conditional("Debug")]
+
+    [Conditional("HTools")]
     public static void Log(object msg)
     {
         UnityEngine.Debug.Log(msg);
@@ -43,9 +55,13 @@ public static class TaskExpand
         task.ContinueWith(handleException);
     }
 
-    private static void handleException(Task arg1)
+    private static async void handleException(Task task)
     {
         //do nothing
+        if(task.Exception != null)
+        {
+            HDebug.Log(task.Exception);
+        }
     }
 }
 

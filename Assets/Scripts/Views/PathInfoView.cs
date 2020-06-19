@@ -32,6 +32,16 @@ namespace PathFind
             addPlayer.onClick.AddListener(GameCore.SpawnPlayer);
             addNPC.onClick.AddListener(GameCore.SpawnNPC);
             runGameOrPauseGame.onClick.AddListener(GameCore.RunOrPauseCore);
+
+            aaa();
+        }
+
+        private async void aaa()
+        {
+            await new WaitForSeconds(1);
+            addPlayer.onClick.Invoke();
+            addNPC.onClick.Invoke();
+            runGameOrPauseGame.onClick.Invoke();
         }
 
         private void OnFindPath(IList<ICell> path)

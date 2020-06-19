@@ -12,6 +12,8 @@ public interface CameraMoveRemote
 }
 public class CameraMove : MonoBehaviour, CameraMoveRemote
 {
+    [Range(1,10)]
+    public float focusSpeed = 1;
     [SerializeField]
     Vector2Int dest;
     public void FocusOnCurrentEntity()
@@ -37,7 +39,8 @@ public class CameraMove : MonoBehaviour, CameraMoveRemote
     {
         Vector3 v = HexCoords.GetHexVisualCoords(dest);
         v.y = 20;
-        this.transform.position = v;
+        this.transform.position = Vector3.Lerp(this.transform.position, v, Time.deltaTime * focusSpeed);
+        //this.transform.position = v;
     }
 
     void Start()
@@ -52,10 +55,7 @@ public class CameraMove : MonoBehaviour, CameraMoveRemote
         {
             FocusOnCurrentEntity();
         }
-
-        if (beginMove)
-        {
-
-        }
+        FocusOnCurrentEntity();
+        
     }
 }

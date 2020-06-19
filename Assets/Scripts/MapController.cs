@@ -42,11 +42,11 @@ namespace PathFind
                 var position = HexCoords.GetHexVisualCoords(point, mapSize);
                 var go = Instantiate(prefabItem.Prefab, position, Quaternion.identity);
                 go.transform.SetParent(transform);
-                go.name += cell.Col + ":" +  cell.Row;
+                go.name += cell.Col + ":" + cell.Row;
                 var cellView = go.GetComponent<CellView>();
                 if (cellView == null)
                     cellView = go.AddComponent<CellView>();
-                cellView.SetPoint(point,position);
+                cellView.SetPoint(point, position);
                 _cellsView[point] = cellView;
             }
         }
@@ -83,7 +83,7 @@ namespace PathFind
 
         public CellView GetCellView(Vector2Int key)
         {
-            if(_cellsView.TryGetValue(key,out CellView view))
+            if (_cellsView.TryGetValue(key, out CellView view))
             {
                 return view;
             }
@@ -99,6 +99,13 @@ namespace PathFind
         public IMap GetMap()
         {
             return _map;
+        }
+
+        public ICell GetRandomCell()
+        {
+            Vector2Int size = _map.GetMapSize();
+            Vector2Int point = new Vector2Int(UnityEngine.Random.Range(0, size.x), UnityEngine.Random.Range(0, size.y));
+            return _map.GetCell(point);
         }
 
         public IPathFinder GetPathFinder()

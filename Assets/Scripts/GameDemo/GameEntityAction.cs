@@ -1,6 +1,8 @@
 ﻿using PathFind;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 public interface GameEntityActionRemote
 {
@@ -43,31 +45,73 @@ public class WarriorEntityAction : GameEntityAction
     }
     public override async void Action2Entity(GameEntity targetEntity)
     {
-        await move2target(targetEntity);
+        await cancelActionOrLostTarget();
     }
 
-    IEnumerator move2target(GameEntity target)
+    IEnumerator cancelActionOrLostTarget()
     {
-        yield return null;
-        while(true)
+        while (entity.targetEntity != null)
         {
-            MapController map = GameCore.GetRegistServices<MapController>();
-            IList<ICell> path = map.GetPathFinder().FindPathOnMap(map.GetMap().GetCell(entity.CurrentPoint), map.GetMap().GetCell(target.CurrentPoint),map.GetMap());
-            path.RemoveAt(path.Count - 1);
-            ICell dest = path[path.Count - 1];
-            entity.MoveAlongPath(path);
+            yield return move2target();
+          
+        }
+    }
 
-            while(!entity.IsEntityAtPoint(dest.Point))
+  
+    private void DoAttack()
+    {
+        entity.DoAttack();
+        HDebug.Log("entity " + entity.gameObject.name + ":" + "target " + entity.targetEntity.gameObject.name);
+    }
+
+    IEnumerator move2target()
+    {
+
+        //while (entity.targetEntity != null)
+        {
+            if (entity.targetEntity.CurrentPoint.GetCellNeighbor().Contains(entity.CurrentPoint))
             {
-                yield return new WaitForSeconds(0.3f);
+                if (PAttack())
+                {
+                    DoAttack();
+                }
+                yield return new WaitForEndOfFrame();
             }
-
+            else
+            {
+                MapController map = GameCore.GetRegistServices<MapController>();
+                IList<ICell> path = map.GetPathFinder().FindPathOnMap(
+                    map.GetMap().GetCell(entity.CurrentPoint),
+                    map.GetMap().GetCell(entity.targetEntity.CurrentPoint),
+                    map.GetMap());
+                if (path != null && path.Count >= 2)
+                {
+                    path.RemoveAt(path.Count - 1);
+                    ICell dest = path[path.Count - 1];
+                    int startIndex = 0;
+                    int destIndex = path.Count - 1;
+                    while (true && startIndex < path.Count - 1)
+                    {
+                        if (startIndex + 1 <= path.Count - 1)
+                        {
+                            //yield return entity.moveFromAtoB(path[startIndex], path[startIndex + 1]).AsIEnumerator();
+                            yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
+                            if (PAttack())
+                            {
+                                DoAttack();
+                            }
+                        }
+                        startIndex = startIndex + 1;
+                    }
+                }
+                //yield return null;
+            }
         }
     }
 
     private bool PAttack()
     {
-        return false;
+        return entity.PAttack();
     }
 
 }

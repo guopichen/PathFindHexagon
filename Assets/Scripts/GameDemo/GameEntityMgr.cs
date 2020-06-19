@@ -22,14 +22,28 @@ public class GameEntityMgr : GameServiceBase
         if (!Instance.allEntities.Contains(entity))
         {
             Instance.allEntities.Add(entity);
+            if(GameCore.GetGameStatus() == GameStatus.Run)
+            {
+                OnStartGame(entity);
+            }
         }
     }
 
     private void initImplement(MapController map)
     {
-        map.OnPathFind += Instance.FirePathFindEvent;
+        map.OnPathFind += Instance.OnPathFind;
+        map.OnEndCellSelect += Instance.OnEndCellSelect;
         //map.OnStartCellSelect += instance.DrawRingCell;
     }
+
+    private void OnEndCellSelect(ICell obj)
+    {
+        if(SelectedEntity != null)
+        {
+            SelectedEntity.AimAtTargetEntity(null);
+        }
+    }
+
     private void DrawRingCell(ICell centerCell)
     {
         List<Vector2Int> vector2Ints = new List<Vector2Int>();
@@ -71,8 +85,9 @@ public class GameEntityMgr : GameServiceBase
         }
     }
 
+    public static bool EnableRandomMove = false;
 
-    private void FirePathFindEvent(IList<ICell> path)
+    private void OnPathFind(IList<ICell> path)
     {
         SelectedEntity?.MoveAlongPath(path);
     }
@@ -97,14 +112,24 @@ public class GameEntityMgr : GameServiceBase
         {
             entity.UpdateEntityRuntime(Time.deltaTime);
         }
+
+        if(Input.GetKeyDown(KeyCode.F1))
+        {
+            EnableRandomMove = !EnableRandomMove;
+        }
     }
 
     public override void OnStartGame()
     {
         foreach (GameEntity entity in allEntities)
         {
-            entity.gameObject.SetActive(true);
+            OnStartGame(entity);
         }
+    }
+
+    private void OnStartGame(GameEntity gameEntity)
+    {
+        gameEntity.gameObject.SetActive(true);
     }
 
     public override void OnInitGame()
