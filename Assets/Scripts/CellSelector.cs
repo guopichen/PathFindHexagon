@@ -1,7 +1,7 @@
 ﻿using PathFind;
 using System;
 using UnityEngine;
-
+using System.Collections.Generic;
 namespace PathFind
 {
     public class CellSelector : MonoBehaviour
@@ -10,6 +10,9 @@ namespace PathFind
 
         public Action<Vector2Int> OnStartPoint = delegate { };
         public Action<Vector2Int> OnEndPoint = delegate { };
+
+
+        public static Dictionary<Vector2Int, bool> allowClickSet = new Dictionary<Vector2Int, bool>();
 
         enum MouseButton
         {
@@ -21,6 +24,32 @@ namespace PathFind
         private void Update()
         {
 #if Test
+            test();
+#else
+
+            var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : MouseButton.None;
+            if (mouseButton != MouseButton.None)
+            {
+                var ray = m_camera.ScreenPointToRay(Input.mousePosition);
+                var cell = Raycast(ray);
+                if (cell != null)
+                {
+                    bool allowClick = false;
+                    allowClickSet.TryGetValue(cell.GetPoint(), out allowClick);
+                    if (allowClick == false)
+                        return;
+
+                    var point = cell.GetPoint();
+                    OnEndPoint?.Invoke(point);
+                }
+            }
+#endif
+
+
+        }
+
+        private void test()
+        {
             var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : Input.GetMouseButtonDown(1) ? MouseButton.Right : MouseButton.None;
             if (mouseButton != MouseButton.None)
             {
@@ -33,21 +62,6 @@ namespace PathFind
                     if (mouseButton == MouseButton.Right) OnEndPoint?.Invoke(point);
                 }
             }
-#else
-            var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : MouseButton.None;
-            if (mouseButton != MouseButton.None)
-            {
-                var ray = m_camera.ScreenPointToRay(Input.mousePosition);
-                var cell = Raycast(ray);
-                if (cell != null)
-                {
-                    var point = cell.GetPoint();
-                    OnEndPoint?.Invoke(point);
-                }
-            }
-#endif
-
-
         }
 
         private CellView Raycast(Ray ray)

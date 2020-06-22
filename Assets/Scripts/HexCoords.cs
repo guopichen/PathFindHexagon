@@ -45,10 +45,8 @@ namespace PathFind
 
             if (container == null || R < 0)
                 return false;
-            //container = point.GetCellRingSides(R);
 
 
-            return true;
             switch (R)
             {
                 case 0:

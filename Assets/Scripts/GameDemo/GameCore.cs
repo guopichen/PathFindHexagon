@@ -77,7 +77,7 @@ public class GameCore : MonoBehaviour
         GameObject clone = GameObject.Instantiate(prefab);
         clone.name = "npc";
         GameEntity entity = clone.GetComponent<GameEntity>();
-        entity.SetControllType(EntityControllStatus.AI);
+        entity.SetControllType(EntityControllType.AI);
         GetRegistServices<GameEntityMgr>().RegEntity(entity);
     }
 
@@ -87,7 +87,7 @@ public class GameCore : MonoBehaviour
         GameObject prefab = Resources.Load<GameObject>(prefabname);
         GameObject clone = GameObject.Instantiate(prefab);
         GameEntity entity = clone.GetComponent<GameEntity>();
-        entity.SetControllType(EntityControllStatus.Player);
+        entity.SetControllType(EntityControllType.Player);
         GetRegistServices<GameEntityMgr>().RegEntity(clone.GetComponent<GameEntity>());
 
     }

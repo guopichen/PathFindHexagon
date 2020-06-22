@@ -16,17 +16,33 @@ public class GameEntityMgr : GameServiceBase
 
 
     private List<GameEntity> allEntities = new List<GameEntity>();
+    private Dictionary<int, GameEntity> id2allEntities = new Dictionary<int, GameEntity>();
+
 
     public void RegEntity(GameEntity entity)
     {
-        if (!Instance.allEntities.Contains(entity))
+        int key = entity.GetInstanceID();
+        entity.entityID = key;
+        if(!id2allEntities.ContainsKey(key))
         {
+            id2allEntities.Add(key, entity);
             Instance.allEntities.Add(entity);
-            if(GameCore.GetGameStatus() == GameStatus.Run)
+            if (GameCore.GetGameStatus() == GameStatus.Run)
             {
                 OnStartGame(entity);
             }
         }
+    }
+    public GameEntity GetGameEntity(int id)
+    {
+        if (id2allEntities.TryGetValue(id, out GameEntity e))
+        {
+            if (e.gameObject == null)
+                return null;
+             return e;
+        }
+        return null;
+            
     }
 
     private void initImplement(MapController map)

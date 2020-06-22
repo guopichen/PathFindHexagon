@@ -27,11 +27,11 @@ public interface GameEntityTransformRemote
 
 public partial class GameEntity : MonoBehaviour, GameEntityRemote
 {
+    public int entityID;
     private GameObject m_GameObject;
     private Transform m_Transform;
 
-    [SerializeField]
-    private GameEntityConfig entityConfig = new GameEntityConfig() { maxSingleMove = 10 };
+    public GameEntityConfig entityConfig;
 
     [SerializeField]
     private GameEntityRuntimeData runtimeData;
@@ -47,16 +47,21 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
     GameEntityVisual entityVisual;
 
 
-    EntityControllStatus controllType = EntityControllStatus.None;
+    EntityControllType controllType = EntityControllType.None;
     GameEntityControllRemote controllRemote = GameEntityControllBase.emptyEntityControll;
 
     EntityActionEnum actionEnum = EntityActionEnum.None;
     GameEntityAction actionRemote;
 
 
-    public void SetControllType(EntityControllStatus entityControllStatus)
+    public void SetControllType(EntityControllType entityControllStatus)
     {
         this.controllType = entityControllStatus;
+    }
+
+    public EntityControllType GetControllType()
+    {
+        return this.controllType;
     }
 
     IEnumerator Start()
@@ -64,11 +69,11 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         m_Transform = this.transform;
         m_GameObject = this.gameObject;
         yield return null;
-        if (controllType == EntityControllStatus.Player)
+        if (controllType == EntityControllType.Player)
         {
             controllRemote = new PlayerEntitiyControll();
         }
-        else if (controllType == EntityControllStatus.AI)
+        else if (controllType == EntityControllType.AI)
         {
             controllRemote = new AIEntitiyControll();
         }
@@ -88,7 +93,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
 
 
 
-        if (controllType == EntityControllStatus.AI)
+        if (controllType == EntityControllType.AI)
         {
             onReachDst += async () =>
             {
@@ -102,6 +107,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
 
     private void randomMove()
     {
+        if (targetEntity != null)
+            return;
         ICell fromcell = mapController.GetMap().GetCell(CurrentPoint);
         ICell tocell = mapController.GetRandomCell();
         IList<ICell> path = mapController.GetPathFinder().FindPathOnMap(fromcell, tocell, mapController.GetMap());
@@ -121,6 +128,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
                 {
                     currentPath = null;
                     onReachDst();
+                    if (controllType == EntityControllType.Player && GameEntityMgr.GetSelectedEntity() == this)
+                        ShowEyeSight();
                 }
                 yield return new WaitForSeconds(0.5f);
             }
@@ -182,18 +191,20 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         Vector3 toVisualPos = HexCoords.GetHexVisualCoords(to.Point, mapSize);
         float t = 0;
         float total = 0.1f * 60;
+        enterCellPoint(from.Point);
         while (t < total)
         {
-            //t += (0.1f * 10) ;
             t += (0.1f * entityConfig.speedFactor);
             if (t / total < 0.5)
             {
-                enterCellPoint(from.Point);
+                //enterCellPoint(from.Point);
             }
             else
             {
                 enterCellPoint(to.Point);
             }
+
+            //this.transform.LookAt(HexCoords.GetHexVisualCoords(to.Point));
 
             this.transform.position = Vector3.Lerp(fromVisualPos, toVisualPos, t / total);
 
@@ -202,31 +213,31 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         }
     }
 
-    public async Task moveFromAtoB(ICell from, ICell to)
-    {
-        var mapSize = mapController.GetMapSize();
-        Vector3 fromVisualPos = HexCoords.GetHexVisualCoords(from.Point, mapSize);
-        Vector3 toVisualPos = HexCoords.GetHexVisualCoords(to.Point, mapSize);
-        float t = 0;
-        float total = 0.1f * 60;
-        while (t < total)
-        {
-            //t += (0.1f * 10) ;
-            t += (0.1f * entityConfig.speedFactor);
-            if (t / total < 0.5)
-            {
-                enterCellPoint(from.Point);
-            }
-            else
-            {
-                enterCellPoint(to.Point);
-            }
+    //public async Task moveFromAtoB(ICell from, ICell to)
+    //{
+    //    var mapSize = mapController.GetMapSize();
+    //    Vector3 fromVisualPos = HexCoords.GetHexVisualCoords(from.Point, mapSize);
+    //    Vector3 toVisualPos = HexCoords.GetHexVisualCoords(to.Point, mapSize);
+    //    float t = 0;
+    //    float total = 0.1f * 60;
+    //    while (t < total)
+    //    {
+    //        //t += (0.1f * 10) ;
+    //        t += (0.1f * entityConfig.speedFactor);
+    //        if (t / total < 0.5)
+    //        {
+    //            enterCellPoint(from.Point);
+    //        }
+    //        else
+    //        {
+    //            enterCellPoint(to.Point);
+    //        }
 
-            this.transform.position = Vector3.Lerp(fromVisualPos, toVisualPos, t / total);
+    //        this.transform.position = Vector3.Lerp(fromVisualPos, toVisualPos, t / total);
 
-            await new WaitForEndOfFrame();
-        }
-    }
+    //        await new WaitForEndOfFrame();
+    //    }
+    //}
 
 
     private void enterCellPoint(Vector2Int point)
@@ -250,6 +261,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
     {
         if (path == null || path.Count == 0)
             return;
+
+        Debug.Log(path[0].Point + ": " + CurrentPoint);
         if (path.Count > entityConfig.maxSingleMove)
         {
             for (int i = path.Count - 1; i >= 0; i--)
@@ -300,25 +313,45 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
             cd = runtimeData.cd2 >= 0;
         else if (i == 3)
             cd = runtimeData.cd3 >= 0;
-        return cd && isTargetEntityInAttackSight();
+        return cd;
     }
 
-    private bool isTargetEntityInAttackSight()
+    public bool IsTargetEntityInAttackSight()
     {
         if (entityConfig.attackSight == 1)
             return targetEntity != null && CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
         else
         {
-
             if (targetEntity != null)
             {
-                if (HexCoords.GetHexCellByRadius(CurrentPoint, entityConfig.attackSight, ref attackSightArea))
-                {
-                    return attackSightArea.Contains(targetEntity.CurrentPoint);
-                }
+                return beInRange(entityConfig.attackSight, targetEntity.CurrentPoint, ForAttack);
             }
             return false;
         }
+    }
+
+    public bool IsTargetInPursueSight()
+    {
+        if (targetEntity == null)
+            return false;
+        if (entityConfig.pursueSight == 1)
+            return CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
+        else
+            return beInRange(entityConfig.pursueSight, targetEntity.CurrentPoint, ForPursue);
+    }
+
+
+    static Collider[] forSensor = new Collider[400];
+
+
+    private bool beInRange(int R, Vector2Int v, int useType)
+    {
+        if (R == 1)
+        {
+            return CurrentPoint.GetCellNeighbor().Contains(v);
+        }
+        setRange(R, useType);
+        return rangeSightArea.Contains(v);
     }
 
     public void DoAttack(int i = 1)
@@ -326,6 +359,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         if (targetEntity != null)
             this.m_Transform.LookAt(targetEntity.m_Transform.position);
         this.entityVisual.PlayAttack(i);
+        this.targetEntity.SendCmd(entityID, ControllMsg.CaughtDamage, string.Empty);
+
         if (i == 1)
             runtimeData.cd1 -= 3;
         else if (i == 2)
@@ -334,6 +369,22 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
             runtimeData.cd3 -= 10;
     }
 
+
+
+    private void SendCmd(int fromID, ControllMsg msg, string arg)
+    {
+        if (controllType != EntityControllType.AI)
+            return;
+        GameEntity fromEntity = GameCore.GetRegistServices<GameEntityMgr>().GetGameEntity(fromID);
+        if (msg == ControllMsg.CaughtDamage)
+        {
+            if (fromEntity != null && fromEntity != targetEntity)
+            {
+                AimAtTargetEntity(fromEntity);
+            }
+            controllRemote.SendCmd(msg, arg);
+        }
+    }
 }
 
 public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler
@@ -385,7 +436,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (controllType == EntityControllStatus.Player)
+        if (controllType == EntityControllType.Player)
         {
             if (SelectStatus == GameEntitySelectStatus.Selected)
             {
@@ -399,7 +450,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         else
         {
             GameEntity selected = GameEntityMgr.GetSelectedEntity();
-            if (selected != null && selected.controllType == EntityControllStatus.Player)
+            if (selected != null && selected.controllType == EntityControllType.Player)
             {
                 selected.AimAtTargetEntity(this);
                 this.NoticeBeAimed(selected);
@@ -417,36 +468,59 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     }
 
-    private static List<Vector2Int> eyeSightArea = new List<Vector2Int>();//用作公用
+    private static List<Vector2Int> rangeSightArea = new List<Vector2Int>();//用作公用
     private static List<Vector2Int> attackSightArea = new List<Vector2Int>();
     void ShowEyeSight()
     {
         CleanLastEyeSight();
         UpdateCurrentEyeSight();
-
     }
 
     private void UpdateCurrentEyeSight()
     {
-        HexCoords.GetHexCellByRadius(currentCell, entityConfig.eyeSight, ref eyeSightArea);
-        eyeSightArea = HexCoords.aa(currentCell, entityConfig.eyeSight, mapController.GetMap());
-        foreach (Vector2Int v in eyeSightArea)
+        setRange(entityConfig.eyeSight, ForEye);
+
+        foreach (var kvp in CellSelector.allowClickSet)
         {
-            CellView cellview = mapController.GetCellView(v);
+            CellView cellview = mapController.GetCellView(kvp.Key);
             if (cellview != null)
                 cellview.SetCellViewStatus(CellViewStatus.EyeSight);
         }
     }
 
+
+    private const int ForEye = 1;
+    private const int ForPursue = 2;
+    private const int ForAttack = 3;
+
+
+    private void setRange(int R, int useType)
+    {
+        int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor);
+        rangeSightArea.Clear();
+        if (useType == ForEye)
+            CellSelector.allowClickSet.Clear();
+        for (int i = 0; i < length; i++)
+        {
+            CellView view = forSensor[i].GetComponent<CellView>();
+            if (view != null)
+            {
+                if (useType == ForEye)
+                    CellSelector.allowClickSet.Add(view.GetPoint(), true);
+                rangeSightArea.Add(view.GetPoint());
+            }
+        }
+    }
+
     void CleanLastEyeSight()
     {
-        foreach (Vector2Int v in eyeSightArea)
+        foreach (var kvp in CellSelector.allowClickSet)
         {
-            CellView cellview = mapController.GetCellView(v);
+            CellView cellview = mapController.GetCellView(kvp.Key);
             if (cellview != null)
                 cellview.SetCellViewStatus(CellViewStatus.None);
         }
-        eyeSightArea.Clear();
+        rangeSightArea.Clear();
     }
 
     public void OnPointerExit(PointerEventData eventData)

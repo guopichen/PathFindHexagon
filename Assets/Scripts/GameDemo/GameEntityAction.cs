@@ -45,15 +45,42 @@ public class WarriorEntityAction : GameEntityAction
     }
     public override async void Action2Entity(GameEntity targetEntity)
     {
-        await cancelActionOrLostTarget();
+        if(entity.GetControllType() == EntityControllType.Player)
+        {
+            await playerAction2Entity();
+        }
+        else if(entity.GetControllType() == EntityControllType.AI)
+        {
+            await aiAction2Entity();
+        }
     }
 
-    IEnumerator cancelActionOrLostTarget()
+    private IEnumerator aiAction2Entity()
+    {
+        while(entity.targetEntity != null)
+        {
+            yield return aiLogic();
+        }
+    }
+
+    IEnumerator aiLogic()
+    {
+        if (entity.IsTargetInPursueSight())
+        {
+            yield return move2target();
+        }
+        else
+        {
+            //out of pursue,stop action to targetentity
+            entity.AimAtTargetEntity(null);
+        }
+    }
+
+    IEnumerator playerAction2Entity()
     {
         while (entity.targetEntity != null)
         {
             yield return move2target();
-          
         }
     }
 
@@ -69,7 +96,7 @@ public class WarriorEntityAction : GameEntityAction
 
         //while (entity.targetEntity != null)
         {
-            if (entity.targetEntity.CurrentPoint.GetCellNeighbor().Contains(entity.CurrentPoint))
+            if (entity.IsTargetEntityInAttackSight())
             {
                 if (PAttack())
                 {
@@ -94,17 +121,13 @@ public class WarriorEntityAction : GameEntityAction
                     {
                         if (startIndex + 1 <= path.Count - 1)
                         {
-                            //yield return entity.moveFromAtoB(path[startIndex], path[startIndex + 1]).AsIEnumerator();
                             yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
-                            if (PAttack())
-                            {
-                                DoAttack();
-                            }
+                            if (entity.IsTargetEntityInAttackSight())
+                                yield break;
                         }
                         startIndex = startIndex + 1;
                     }
                 }
-                //yield return null;
             }
         }
     }
