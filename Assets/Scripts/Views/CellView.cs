@@ -18,12 +18,19 @@ namespace PathFind
         Renderer renderer;
         Material[] materials;
 
-        Material eyeSight;
+        static Material eyeSight;
+
+        static Material[] replace = new Material[1];
+
         private void Start()
         {
             renderer = this.gameObject.GetComponent<Renderer>();
             materials = renderer.materials;
-            eyeSight = Resources.Load<Material>("EyeSight");
+            if (eyeSight == null)
+            {
+                eyeSight = Resources.Load<Material>("EyeSight");
+                replace[0] = eyeSight;
+            }
         }
 
         public void SetPoint(Vector2Int point, Vector3 viewPos)
@@ -53,10 +60,10 @@ namespace PathFind
             viewStatus = status;
             if ((status & CellViewStatus.EyeSight) == CellViewStatus.EyeSight)
             {
-                renderer.materials = new Material[] { eyeSight };
+                renderer.materials = replace;
             }
 
-            if(status == CellViewStatus.None)
+            if (status == CellViewStatus.None)
             {
                 renderer.materials = materials;
             }

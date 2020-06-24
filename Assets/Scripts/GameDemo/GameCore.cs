@@ -55,6 +55,16 @@ public class GameCore : MonoBehaviour
         }
     }
 
+    public IEnumerator gameTick()
+    {
+        yield return null;
+        while(coreStatus == GameStatus.Run)
+        {
+            yield return null;
+
+        }
+    }
+
     internal static void RunOrPauseCore()
     {
         if (!Instance.gameObject.activeInHierarchy)
@@ -72,7 +82,7 @@ public class GameCore : MonoBehaviour
 
     internal static void SpawnNPC()
     {
-        string prefabname = "player";
+        string prefabname = "GameEntity";
         GameObject prefab = Resources.Load<GameObject>(prefabname);
         GameObject clone = GameObject.Instantiate(prefab);
         clone.name = "npc";
@@ -83,7 +93,7 @@ public class GameCore : MonoBehaviour
 
     internal static void SpawnPlayer()
     {
-        string prefabname = "player";
+        string prefabname = "GameEntity";
         GameObject prefab = Resources.Load<GameObject>(prefabname);
         GameObject clone = GameObject.Instantiate(prefab);
         GameEntity entity = clone.GetComponent<GameEntity>();

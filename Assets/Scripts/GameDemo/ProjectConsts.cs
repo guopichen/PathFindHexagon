@@ -5,4 +5,5 @@ using UnityEngine;
 public static class ProjectConsts 
 {
     public const string Layer_Entity = "player";
+    public const string Layer_Map = "Default";
 }

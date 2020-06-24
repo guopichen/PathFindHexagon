@@ -39,6 +39,14 @@ PrefabInstance:
       propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 8439f667eaf24ef43a3bb047c39bfaa4, type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 8439f667eaf24ef43a3bb047c39bfaa4, type: 3}
+      propertyPath: m_MotionVectors
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -6860895033569716450, guid: 8439f667eaf24ef43a3bb047c39bfaa4,
         type: 3}
       propertyPath: m_Convex

@@ -10,9 +10,12 @@ using UnityEngine;
 
 public static class GameTimer
 {
+
+    #region 用于通常情况下的
     public static async Task AwaitSeconds(float seconds, Action action)
     {
         await new WaitForSeconds(seconds);
+        //await GameCore.Instance.gameTick();
         while (GameCore.GetGameStatus() != GameStatus.Run)
             await new WaitForEndOfFrame();
         action();
@@ -34,6 +37,12 @@ public static class GameTimer
             await new WaitForEndOfFrame();
         t.ContinueWith(t2).ForgetAwait();
     }
+    #endregion
+
+    #region 基于GameCore的情况
+
+
+    #endregion
 }
 
 

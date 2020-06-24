@@ -19,13 +19,16 @@ public interface GameEntityTransformRemote
     Vector2Int CurrentPoint { get; }
 }
 
+public interface IGameEntityInit
+{
+    int ModelID { get; set; }
+}
 
 
 
 
 
-
-public partial class GameEntity : MonoBehaviour, GameEntityRemote
+public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityInit
 {
     public int entityID;
     private GameObject m_GameObject;
@@ -36,11 +39,11 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
     [SerializeField]
     private GameEntityRuntimeData runtimeData;
 
-
-
     private Vector2Int currentCell;
 
     public Vector2Int CurrentPoint { get { return currentCell; } }
+
+    public int ModelID { get; set; }
 
     private MapController mapController;
 
@@ -54,6 +57,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
     GameEntityAction actionRemote;
 
 
+    List<Skill> entitySkillSet;
     public void SetControllType(EntityControllType entityControllStatus)
     {
         this.controllType = entityControllStatus;
@@ -64,44 +68,67 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         return this.controllType;
     }
 
+    public bool BeAlive()
+    {
+        return true;
+    }
+
+    IEnumerator player_LogicSwitchA;
+    IEnumerator player_AILogicSwitchB;
+    IEnumerator runtimeSwitcher = null;
+
+
     IEnumerator Start()
     {
         m_Transform = this.transform;
         m_GameObject = this.gameObject;
         yield return null;
-        if (controllType == EntityControllType.Player)
-        {
-            controllRemote = new PlayerEntitiyControll();
-        }
-        else if (controllType == EntityControllType.AI)
-        {
-            controllRemote = new AIEntitiyControll();
-        }
+
+        //设定职业
         actionEnum = EntityActionEnum.Warrior;
         if (actionEnum == EntityActionEnum.Warrior)
             actionRemote = new WarriorEntityAction(this);
         else
             actionRemote = new GameEntityAction(this);
 
-        entityVisual = new GameEntityVisual(this.transform.Find("GameEntity").gameObject);
-        StartCoroutine(workAsUpdate());
+        player_LogicSwitchA = playerUpdate();
+        player_AILogicSwitchB = actionRemote.AutoUpdate();
+
+        //设定模型外观
+        entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID);
+
+        if (controllType == EntityControllType.Player)
+        {
+            controllRemote = new PlayerEntitiyControll();
+            //StartCoroutine(playerUpdate());
+            runtimeSwitcher = player_LogicSwitchA;
+            StartCoroutine(updateContainer());
+        }
+        else if (controllType == EntityControllType.AI)
+        {
+            controllRemote = new AIEntitiyControll();
+            StartCoroutine(actionRemote.AutoUpdate());
+        }
+
+
         mapController = GameCore.GetRegistServices<MapController>();
-        currentCell = mapController.GetCellView(new Vector2Int(0, 0)).GetPoint();
+
+        currentCell = mapController.GetRandomCell().Point;
+        //mapController.GetCellView(new Vector2Int(0, 0)).GetPoint();
         var mapSize = mapController.GetMapSize();
         this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
         GameTimer.AwaitLoopSeconds(1, CalledEverySeconds).ForgetAwait();
 
 
-
-        if (controllType == EntityControllType.AI)
-        {
-            onReachDst += async () =>
-            {
-                await new WaitForSeconds(1);
-                randomMove();
-            };
-            randomMove();
-        }
+        //if (controllType == EntityControllType.AI)
+        //{
+        //    onReachDst += async () =>
+        //    {
+        //        await new WaitForSeconds(1);
+        //        randomMove();
+        //    };
+        //    randomMove();
+        //}
     }
 
 
@@ -115,12 +142,30 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         MoveAlongPath(path);
     }
 
-    Action onReachDst = delegate { };
-    IEnumerator workAsUpdate()
-    {
-        yield return null;
 
-        while (true)
+    //用于快速切换玩家的自动状态 与 玩家操作
+
+    IEnumerator updateContainer()
+    {
+        while(true)
+        {
+            if (runtimeSwitcher != null && runtimeSwitcher.MoveNext())
+            {
+                yield return runtimeSwitcher.Current;
+            }
+            else
+                yield return null;
+        }
+    }
+
+    Action onReachDst = delegate { };
+    IEnumerator playerUpdate()
+    {
+        while (!entityVisual.modelLoaded)
+        {
+            yield return null;
+        }
+        while (BeAlive())
         {
             if (currentPath == null || currentPath.Count == 0)
             {
@@ -128,7 +173,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
                 {
                     currentPath = null;
                     onReachDst();
-                    if (controllType == EntityControllType.Player && GameEntityMgr.GetSelectedEntity() == this)
+                    entityVisual.SetAniStatus(EntityAnimStatus.Idle);
+                    if (GameEntityMgr.GetSelectedEntity() == this)
                         ShowEyeSight();
                 }
                 yield return new WaitForSeconds(0.5f);
@@ -140,9 +186,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
                 {
                     if (currentPath.Count == 1)
                     {
-                        yield return movefromApoint2Bpoint(currentPath[0], currentPath[0]);
+                        //yield return movefromApoint2Bpoint(currentPath[0], currentPath[0]);
                         currentPath.RemoveAt(0);
-
                     }
                     else
                     {
@@ -156,11 +201,10 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
                 {
                     currentPath.Clear();
                 }
-
             }
-
         }
     }
+
     void fireEntityEvent(entityEvent e)
     {
         switch (e)
@@ -204,41 +248,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
                 enterCellPoint(to.Point);
             }
 
-            //this.transform.LookAt(HexCoords.GetHexVisualCoords(to.Point));
-
             this.transform.position = Vector3.Lerp(fromVisualPos, toVisualPos, t / total);
-
+            entityVisual.PlayAnim(EntityAnimEnum.Run);
 
             yield return null;
         }
     }
-
-    //public async Task moveFromAtoB(ICell from, ICell to)
-    //{
-    //    var mapSize = mapController.GetMapSize();
-    //    Vector3 fromVisualPos = HexCoords.GetHexVisualCoords(from.Point, mapSize);
-    //    Vector3 toVisualPos = HexCoords.GetHexVisualCoords(to.Point, mapSize);
-    //    float t = 0;
-    //    float total = 0.1f * 60;
-    //    while (t < total)
-    //    {
-    //        //t += (0.1f * 10) ;
-    //        t += (0.1f * entityConfig.speedFactor);
-    //        if (t / total < 0.5)
-    //        {
-    //            enterCellPoint(from.Point);
-    //        }
-    //        else
-    //        {
-    //            enterCellPoint(to.Point);
-    //        }
-
-    //        this.transform.position = Vector3.Lerp(fromVisualPos, toVisualPos, t / total);
-
-    //        await new WaitForEndOfFrame();
-    //    }
-    //}
-
 
     private void enterCellPoint(Vector2Int point)
     {
@@ -262,7 +277,6 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         if (path == null || path.Count == 0)
             return;
 
-        Debug.Log(path[0].Point + ": " + CurrentPoint);
         if (path.Count > entityConfig.maxSingleMove)
         {
             for (int i = path.Count - 1; i >= 0; i--)
@@ -285,18 +299,40 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
 
     public void UpdateEntityRuntime(float dt)
     {
+#if UNITY_EDITOR
+        unityTest();
+#endif
 
+    }
+
+    private void unityTest()
+    {
+        if (controllType == EntityControllType.Player)
+        {
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                runtimeSwitcher = player_LogicSwitchA;
+            }
+            else if (Input.GetKeyDown(KeyCode.P))
+            {
+                actionRemote.ChangeStrategy(GSNPCStrategyEnum.AutoFight);
+            }
+            else if (Input.GetKeyDown(KeyCode.O))
+            {
+                runtimeSwitcher = player_AILogicSwitchB;
+            }
+        }
     }
 
     public void CalledEverySeconds()
     {
+        //runtimeData.tili += runtimeData.deltaTili / runtimeData.deltaTileTime;
         runtimeData.tili += 5;
         runtimeData.cd1 += 1;
         runtimeData.cd1 = Mathf.Clamp(runtimeData.cd1, -30, 0);
 
         runtimeData.cd2 += 1;
         runtimeData.cd2 = Mathf.Clamp(runtimeData.cd2, -30, 0);
-
 
         runtimeData.cd3 += 1;
         runtimeData.cd3 = Mathf.Clamp(runtimeData.cd3, -30, 0);
@@ -318,17 +354,19 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
 
     public bool IsTargetEntityInAttackSight()
     {
-        if (entityConfig.attackSight == 1)
-            return targetEntity != null && CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
-        else
-        {
-            if (targetEntity != null)
-            {
-                return beInRange(entityConfig.attackSight, targetEntity.CurrentPoint, ForAttack);
-            }
-            return false;
-        }
+        return IsEntityInAttackSight(targetEntity);
+        //if (entityConfig.attackSight == 1)
+        //    return targetEntity != null && CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
+        //else
+        //{
+        //    if (targetEntity != null)
+        //    {
+        //        return beInRange(entityConfig.attackSight, targetEntity.CurrentPoint, ForAttack);
+        //    }
+        //    return false;
+        //}
     }
+
 
     public bool IsTargetInPursueSight()
     {
@@ -339,6 +377,18 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         else
             return beInRange(entityConfig.pursueSight, targetEntity.CurrentPoint, ForPursue);
     }
+
+    public bool IsEntityInAttackSight(GameEntity gameEntity)
+    {
+        if (gameEntity == null)
+            return false;
+
+        if (entityConfig.attackSight == 1)
+            return CurrentPoint.GetCellNeighbor().Contains(gameEntity.CurrentPoint);
+        else
+            return beInRange(entityConfig.attackSight, gameEntity.CurrentPoint, ForAttack);
+    }
+
 
 
     static Collider[] forSensor = new Collider[400];
@@ -354,12 +404,34 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
         return rangeSightArea.Contains(v);
     }
 
+    private int GetRangeEntity(int R, GameEntity[] range)
+    {
+        int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor, 1 << LayerMask.NameToLayer(ProjectConsts.Layer_Entity));
+        int i = 0;
+        for (; i < length && i < range.Length; i++)
+        {
+            GameEntity entity = forSensor[i].GetComponentInParent<GameEntity>();
+            if (entity != null && entity != this)
+            {
+                range[i] = entity;
+            }
+        }
+        return Mathf.Min(length, i + 1);
+    }
+
+    public int GetPursueRangeEntity(GameEntity[] range)
+    {
+        return GetRangeEntity(entityConfig.pursueSight, range);
+    }
+
+
+
     public void DoAttack(int i = 1)
     {
         if (targetEntity != null)
             this.m_Transform.LookAt(targetEntity.m_Transform.position);
         this.entityVisual.PlayAttack(i);
-        this.targetEntity.SendCmd(entityID, ControllMsg.CaughtDamage, string.Empty);
+        this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
 
         if (i == 1)
             runtimeData.cd1 -= 3;
@@ -371,19 +443,9 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote
 
 
 
-    private void SendCmd(int fromID, ControllMsg msg, string arg)
+    private void SendCmd(int fromID, Command msg, string arg)
     {
-        if (controllType != EntityControllType.AI)
-            return;
-        GameEntity fromEntity = GameCore.GetRegistServices<GameEntityMgr>().GetGameEntity(fromID);
-        if (msg == ControllMsg.CaughtDamage)
-        {
-            if (fromEntity != null && fromEntity != targetEntity)
-            {
-                AimAtTargetEntity(fromEntity);
-            }
-            controllRemote.SendCmd(msg, arg);
-        }
+        actionRemote.SendCmd(fromID, msg, arg);
     }
 }
 
@@ -415,13 +477,18 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
         }
     }
-    public GameEntity targetEntity { private set; get; }
+    private GameEntity targetEntity;
     List<GameEntity> entityWhoAimAtMeSet = new List<GameEntity>();
 
-    public void AimAtTargetEntity(GameEntity target)
+    public GameEntity GetTargetEntity()
+    {
+        return targetEntity;
+    }
+
+    public void AimAtTargetEntity(GameEntity target, bool takeAction = true)
     {
         this.targetEntity = target;
-        if (targetEntity != null)
+        if (targetEntity != null && takeAction)
         {
             actionRemote.Action2Entity(targetEntity);
         }
@@ -547,29 +614,210 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
 public class GameEntityVisual
 {
-    private GameObject rootGo;
+    private GameObject visualRootGo;
     private Transform rootTrans;
     public Material material;
+
+    private GameObject myModelRoot;
+    private Transform body;
+    private Transform weapon;
+    private Animator m_anim;
+    public bool modelLoaded = false;
+
     Vector3 originalSize;
-    public GameEntityVisual(GameObject modelObj)
+    public GameEntityVisual(GameObject rootObj, int modelID)
     {
-        rootGo = modelObj;
-        rootTrans = modelObj.transform;
+        visualRootGo = rootObj;
+        rootTrans = rootObj.transform;
         originalSize = rootTrans.localScale;
-        material = modelObj.GetComponent<Renderer>().material;
+
+        loadModel("M" + modelID);
     }
+
+
+    async void loadModel(string resName)
+    {
+        ResourceRequest quest = Resources.LoadAsync<ModelView>(resName);
+        await quest;
+        ModelView view = (ModelView)quest.asset;
+        if (view == null || view.GetPrefab() == null)
+            return;
+
+        myModelRoot = GameObject.Instantiate(view.GetPrefab());
+        myModelRoot.transform.SetParent(visualRootGo.transform);
+        myModelRoot.transform.localPosition = (Vector3.zero);
+        myModelRoot.transform.localEulerAngles = Vector3.zero;
+        body = myModelRoot.transform.Find(view.GetBodyTransformName());
+        weapon = myModelRoot.transform.Find(view.GetWeaponTransformName());
+        material = body?.GetComponent<Renderer>().material;
+        m_anim = myModelRoot.GetComponent<Animator>();
+
+        modelLoaded = true;
+    }
+
 
     public void SetColor(Color c)
     {
-        material.SetColor("_Color", c);
+        material?.SetColor("_Color", c);
     }
 
     internal async void PlayAttack(int i = 1)
     {
         rootTrans.localScale = originalSize * 2;
+        PlayAnim(EntityAnimEnum.Attack);
         await new WaitForSeconds(1);
         rootTrans.localScale = originalSize;
     }
+
+
+    private EntityAnimStatus aniStatus = EntityAnimStatus.None;
+
+    public EntityAnimStatus AniStatus
+    {
+        get => aniStatus;
+        set
+        {
+            if (aniStatus == value || aniStatus == EntityAnimStatus.Death)
+                return;
+            statusLoseFocus();
+            aniStatus = value;
+            statusGainFocus();
+        }
+    }
+
+    private void statusLoseFocus()
+    {
+        switch (aniStatus)
+        {
+
+            case EntityAnimStatus.Battle:
+                m_anim.SetBool("Battle", false);
+                m_anim.SetBool("Controlled", false);
+                break;
+            case EntityAnimStatus.Death:
+                break;
+            case EntityAnimStatus.Run:
+                m_anim.SetBool("Run", false);
+                break;
+            case EntityAnimStatus.None:
+            case EntityAnimStatus.Idle:
+            default:
+                break;
+        }
+    }
+
+    private void statusGainFocus()
+    {
+        switch (aniStatus)
+        {
+
+            case EntityAnimStatus.Battle:
+                Battle();
+                break;
+            case EntityAnimStatus.Death:
+                Die();
+                break;
+            case EntityAnimStatus.Run:
+                Run();
+                break;
+            case EntityAnimStatus.None:
+            case EntityAnimStatus.Idle:
+            default:
+                Idle();
+                break;
+        }
+    }
+
+    private void Run()
+    {
+        m_anim.SetBool(Animator.StringToHash("Run"), true);
+        m_anim.SetBool(Animator.StringToHash("Battle"), false);
+    }
+
+    private void Idle()
+    {
+        m_anim.SetBool(Animator.StringToHash("Run"), false);
+        m_anim.SetBool(Animator.StringToHash("Battle"), false);
+    }
+
+    private void Battle()
+    {
+        m_anim.SetBool(Animator.StringToHash("Battle"), true);
+        m_anim.SetBool(Animator.StringToHash("Run"), false);
+    }
+
+    private void Die()
+    {
+        m_anim.SetTrigger(Animator.StringToHash("Death"));
+    }
+
+    static Dictionary<EntityAnimEnum, EntityAnimStatus> anim2status = new Dictionary<EntityAnimEnum, EntityAnimStatus>()
+    {
+        {EntityAnimEnum.None,EntityAnimStatus.None },
+        {EntityAnimEnum.Attack,EntityAnimStatus.Battle },
+        {EntityAnimEnum.Controlled,EntityAnimStatus.Battle },
+        {EntityAnimEnum.Skill,EntityAnimStatus.Battle },
+        {EntityAnimEnum.Hit,EntityAnimStatus.Battle },
+        {EntityAnimEnum.Death,EntityAnimStatus.Death },
+        {EntityAnimEnum.Idle,EntityAnimStatus.Idle },
+        {EntityAnimEnum.Run,EntityAnimStatus.Run }
+    };
+
+
+    public async void SetAniStatus(EntityAnimStatus status)
+    {
+        while (!modelLoaded)
+        {
+            await new WaitForEndOfFrame();
+        }
+        AniStatus = status;//会播放动画
+        //aniStatus = status;//不会播放动画
+    }
+
+    public void PlayAnim(EntityAnimEnum anim)
+    {
+        SetAniStatus(anim2status[anim]);//设置主状态
+        //设置子状态所需
+        switch (anim)
+        {
+            case EntityAnimEnum.Attack:
+                m_anim.SetTrigger("Attack");
+                break;
+            case EntityAnimEnum.Controlled:
+                m_anim.SetBool("Controlled", true);
+                break;
+            case EntityAnimEnum.Hit:
+                m_anim.SetTrigger("Hit");
+                break;
+            case EntityAnimEnum.Skill:
+                m_anim.SetTrigger("Skill");
+                break;
+        }
+    }
+}
+
+//说明动作的归属状态
+public enum EntityAnimStatus
+{
+    None,
+    Battle,    //Attack,    //Controlled,    //Skill,    //Hit,
+    Death,
+    Idle,
+    Run,
+}
+
+
+//说明有哪些动作
+public enum EntityAnimEnum
+{
+    None,
+    Attack,
+    Controlled,
+    Skill,
+    Hit,
+    Death,
+    Idle,
+    Run,
 }
 
 
@@ -600,7 +848,7 @@ public struct GameEntityRuntimeData
     public float cd2;
     public float cd3;
 
-    public float detlaTili;
+    public float deltaTili;
     public float deltaTileTime;
 }
 

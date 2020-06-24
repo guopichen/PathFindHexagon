@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public enum ControllMsg
-{
-    None,
-    CaughtDamage,
-}
+
 public interface GameEntityControllRemote
 {
-    void SendCmd(ControllMsg cmd, string arg);
+    //void SendCmd(ControllMsg cmd, string arg);
+    void UpdateControll();
 }
 public class GameEntityControllBase : GameEntityControllRemote
 {
@@ -20,17 +17,12 @@ public class GameEntityControllBase : GameEntityControllRemote
 
     }
 
-    public void SendCmd(ControllMsg cmd, string arg)
-    {
+    //public void SendCmd(ControllMsg cmd, string arg)
+    //{
 
-    }
+    //}
 
-    void Start()
-    {
-        
-    }
-
-    void Update()
+    public void UpdateControll()
     {
         
     }

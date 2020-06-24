@@ -9,5 +9,6 @@ namespace PathFind
         void SetCell(ICell cell);
         ICell GetCell(Vector2Int point);
         IDictionary<Vector2Int, ICell> GetCells();
+        IDictionary<Vector2Int, MapChunk> GetChunks();
     }
 }

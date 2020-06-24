@@ -2,11 +2,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameEntityMgr : GameServiceBase
 {
-    public static GameEntityMgr Instance { get; private set ; }
+    public static GameEntityMgr Instance { get; private set; }
 
 
     public GameEntityMgr() : base()
@@ -16,14 +17,21 @@ public class GameEntityMgr : GameServiceBase
 
 
     private List<GameEntity> allEntities = new List<GameEntity>();
+    private List<GameEntity> playerEntities = new List<GameEntity>();
+
     private Dictionary<int, GameEntity> id2allEntities = new Dictionary<int, GameEntity>();
 
-
+    static int entityHistoryCnt = 0;
     public void RegEntity(GameEntity entity)
     {
+        entityHistoryCnt++;
         int key = entity.GetInstanceID();
         entity.entityID = key;
-        if(!id2allEntities.ContainsKey(key))
+
+        entity.ModelID = entityHistoryCnt;
+
+
+        if (!id2allEntities.ContainsKey(key))
         {
             id2allEntities.Add(key, entity);
             Instance.allEntities.Add(entity);
@@ -31,6 +39,11 @@ public class GameEntityMgr : GameServiceBase
             {
                 OnStartGame(entity);
             }
+            if (entity.GetControllType() == EntityControllType.Player)
+            {
+                playerEntities.Add(entity);
+            }
+
         }
     }
     public GameEntity GetGameEntity(int id)
@@ -39,11 +52,47 @@ public class GameEntityMgr : GameServiceBase
         {
             if (e.gameObject == null)
                 return null;
-             return e;
+            return e;
         }
         return null;
-            
+
     }
+
+    //获取最近敌对实例
+    public GameEntity GetNearestOpSideEntity(GameEntity centerEntity)
+    {
+        int minDistance = 999;
+        int minID = 0;
+        foreach (int id in allEntities.Select((x) =>
+         {
+             if (x.GetControllType() != centerEntity.GetControllType() && x.BeAlive())
+                 return x.entityID;
+             return 0;
+         }))
+        //foreach(GameEntity entity in playerEntities)
+        {
+            if (id == 0)
+                continue;
+            GameEntity entity = id2allEntities[id];
+            Vector2Int targetPoint = entity.CurrentPoint;
+            int distance = (targetPoint.x - centerEntity.CurrentPoint.x) * (targetPoint.x - centerEntity.CurrentPoint.x)
+                + (targetPoint.y - centerEntity.CurrentPoint.y) * (targetPoint.y - centerEntity.CurrentPoint.y);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                minID = entity.entityID;
+            }
+        }
+        if (id2allEntities.TryGetValue(minID, out GameEntity result))
+            return result;
+        return null;
+    }
+
+    //public GameEntity GetNearEntityFast(Vector2Int point)
+    //{
+    //    return null;
+    //}
+
 
     private void initImplement(MapController map)
     {
@@ -54,7 +103,7 @@ public class GameEntityMgr : GameServiceBase
 
     private void OnEndCellSelect(ICell obj)
     {
-        if(SelectedEntity != null)
+        if (SelectedEntity != null)
         {
             SelectedEntity.AimAtTargetEntity(null);
         }
@@ -79,7 +128,7 @@ public class GameEntityMgr : GameServiceBase
 
     public GameEntity GetRandomActiveEntity()
     {
-        if(allEntities.Count > 0)
+        if (allEntities.Count > 0)
         {
             return allEntities[0];
         }
@@ -129,7 +178,7 @@ public class GameEntityMgr : GameServiceBase
             entity.UpdateEntityRuntime(Time.deltaTime);
         }
 
-        if(Input.GetKeyDown(KeyCode.F1))
+        if (Input.GetKeyDown(KeyCode.F1))
         {
             EnableRandomMove = !EnableRandomMove;
         }

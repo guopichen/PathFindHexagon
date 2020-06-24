@@ -39,6 +39,10 @@ PrefabInstance:
       propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: e7714d20fc1aba24bb920aa4af6e77bc, type: 3}
+      propertyPath: m_MotionVectors
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: e7714d20fc1aba24bb920aa4af6e77bc,
         type: 3}
       propertyPath: m_Name

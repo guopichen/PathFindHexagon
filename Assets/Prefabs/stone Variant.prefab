@@ -53,6 +53,14 @@ PrefabInstance:
       propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_MotionVectors
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: 10757b2c7c8a29f4d9457637ad3484a6,
         type: 3}
       propertyPath: m_Name

@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfd22f45eda877749a01d8699ee8ac97, type: 3}
   m_Name: CellMaterial1
   m_EditorClassIdentifier: 
-  material: {fileID: 0}
+  material: {fileID: 2100000, guid: 5b2ee0f2b8a9645419b9ab9bed805f27, type: 2}
