@@ -38,6 +38,24 @@ namespace PathFind
 #endif
         }
 
+        public static Vector2Int GetHexLogicPoint(Vector3 worldSpace)
+        {
+            Vector2Int mapSize = GameCore.GetRegistServices<MapController>().GetMapSize();
+            float y = (worldSpace.z / CellHeight + (mapSize.y / 2f));
+
+            float x = 0;
+            float shift = 0;
+            int iY = Mathf.CeilToInt(y);
+            if (iY % 2 == 1)
+            {
+                shift = 0.5f;
+            }
+            x = worldSpace.x - shift + ((float)mapSize.x / 2) + 0.25f;
+            
+            int iX = Mathf.CeilToInt(x) - 1;
+            return new Vector2Int(iX, iY);
+        }
+
 
         public static bool GetHexCellByRadius(Vector2Int point, int R, ref List<Vector2Int> container)
         {
