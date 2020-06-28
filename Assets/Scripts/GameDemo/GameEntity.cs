@@ -27,8 +27,7 @@ public interface IGameEntityInit
 
 
 
-
-public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityInit
+public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityInit, IDataForCalculateEntityRuntimeData
 {
     public int entityID;
     private GameObject m_GameObject;
@@ -68,6 +67,10 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         return this.controllType;
     }
 
+    public GameEntityControllRemote GetControllRemote()
+    {
+        return controllRemote;
+    }
     public bool BeAlive()
     {
         return true;
@@ -108,8 +111,10 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         {
             controllRemote = new AIEntitiyControll();
             StartCoroutine(actionRemote.AutoUpdate());
+
         }
 
+        runtimeData = controllRemote.UpdateRuntimeData(this);
 
         mapController = GameCore.GetRegistServices<MapController>();
 
@@ -117,7 +122,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         //mapController.GetCellView(new Vector2Int(0, 0)).GetPoint();
         var mapSize = mapController.GetMapSize();
         this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
-        GameTimer.AwaitLoopSeconds(1, CalledEverySeconds).ForgetAwait();
+        GameTimer.AwaitLoopSeconds(1, controllRemote.CalledEverySeconds).ForgetAwait();
 
 
         //if (controllType == EntityControllType.AI)
@@ -131,7 +136,10 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         //}
     }
 
-
+    public GameEntityVisual GetEntityVisual()
+    {
+        return this.entityVisual;
+    }
     private void randomMove()
     {
         if (targetEntity != null)
@@ -147,7 +155,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     IEnumerator updateContainer()
     {
-        while(true)
+        while (true)
         {
             if (runtimeSwitcher != null && runtimeSwitcher.MoveNext())
             {
@@ -157,8 +165,9 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
                 yield return null;
         }
     }
-
+    public bool pathChanged = true;
     Action onReachDst = delegate { };
+    PathChanged pathSensor = new PathChanged();
     IEnumerator playerUpdate()
     {
         while (!entityVisual.modelLoaded)
@@ -167,6 +176,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         }
         while (BeAlive())
         {
+            pathSensor.TakeSample(this);
+            if (pathSensor.IsDirty && pathSensor.Value)
+            {
+                currentPath?.Clear();
+                AcceptPathChange();
+            }
             if (currentPath == null || currentPath.Count == 0)
             {
                 if (currentPath?.Count == 0)
@@ -177,12 +192,13 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
                     if (GameEntityMgr.GetSelectedEntity() == this)
                         ShowEyeSight();
                 }
-                yield return new WaitForSeconds(0.5f);
+                //yield return new WaitForSeconds(0.5f);
+                yield return new WaitForEndOfFrame();
             }
 
             if (currentPath != null && currentPath.Count > 0)
             {
-                if (runtimeData.tili - 1 >= 0)
+                if (controllRemote.PTiliMove())
                 {
                     if (currentPath.Count == 1)
                     {
@@ -194,6 +210,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
                         ICell start = currentPath[0];
                         ICell next = currentPath[1];
                         yield return movefromApoint2Bpoint(start, next);
+
                         currentPath.RemoveAt(0);
                     }
                 }
@@ -210,7 +227,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         switch (e)
         {
             case entityEvent.enterNewCell:
-                runtimeData.tili--;
+                controllRemote.ChangeTili();
                 break;
         }
     }
@@ -238,7 +255,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         enterCellPoint(from.Point);
         while (t < total)
         {
-            t += (0.1f * entityConfig.speedFactor);
+            //t += (0.1f * entityConfig.speed_config);
+            t += 0.1f * runtimeData.speed;
             if (t / total < 0.5)
             {
                 //enterCellPoint(from.Point);
@@ -271,23 +289,34 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
 
     private IList<ICell> currentPath = null;
-
     public void MoveAlongPath(IList<ICell> path)
     {
         if (path == null || path.Count == 0)
             return;
 
-        if (path.Count > entityConfig.maxSingleMove)
+        int maxCnt = runtimeData.maxSingleMove;
+        //if (path.Count > entityConfig.maxSingleMove_config)
+        if (path.Count > maxCnt)
         {
             for (int i = path.Count - 1; i >= 0; i--)
             {
-                if (i + 1 > entityConfig.maxSingleMove)
+                if (i + 1 > maxCnt)
                     path.RemoveAt(i);
                 else
                     break;
             }
         }
         currentPath = path;
+    }
+
+    public void PredictPathWillChange()
+    {
+        pathChanged = true;
+    }
+
+    private void AcceptPathChange()
+    {
+        mapController.QuestNewPath();
     }
 
 
@@ -315,7 +344,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             }
             else if (Input.GetKeyDown(KeyCode.P))
             {
-                actionRemote.ChangeStrategy(GSNPCStrategyEnum.AutoFight);
+                ChangeStrategy(GSNPCStrategyEnum.AutoFight);
             }
             else if (Input.GetKeyDown(KeyCode.O))
             {
@@ -324,32 +353,19 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         }
     }
 
+    public void ChangeStrategy(GSNPCStrategyEnum strategy)
+    {
+        actionRemote.ChangeStrategy(GSNPCStrategyEnum.AutoFight);
+    }
+
     public void CalledEverySeconds()
     {
-        //runtimeData.tili += runtimeData.deltaTili / runtimeData.deltaTileTime;
-        runtimeData.tili += 5;
-        runtimeData.cd1 += 1;
-        runtimeData.cd1 = Mathf.Clamp(runtimeData.cd1, -30, 0);
-
-        runtimeData.cd2 += 1;
-        runtimeData.cd2 = Mathf.Clamp(runtimeData.cd2, -30, 0);
-
-        runtimeData.cd3 += 1;
-        runtimeData.cd3 = Mathf.Clamp(runtimeData.cd3, -30, 0);
-
 
     }
 
     public bool PAttack(int i = 1)
     {
-        bool cd = false;
-        if (i == 1)
-            cd = runtimeData.cd1 >= 0;
-        else if (i == 2)
-            cd = runtimeData.cd2 >= 0;
-        else if (i == 3)
-            cd = runtimeData.cd3 >= 0;
-        return cd;
+        return controllRemote.PAttack(i);
     }
 
     public bool IsTargetEntityInAttackSight()
@@ -372,10 +388,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     {
         if (targetEntity == null)
             return false;
-        if (entityConfig.pursueSight == 1)
+        //if (entityConfig.pursueSight_config == 1)
+        if (runtimeData.pursueSight == 1)
             return CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
         else
-            return beInRange(entityConfig.pursueSight, targetEntity.CurrentPoint, ForPursue);
+            //return beInRange(entityConfig.pursueSight_config, targetEntity.CurrentPoint, ForPursue);
+            return beInRange(runtimeData.pursueSight, targetEntity.CurrentPoint, ForPursue);
     }
 
     public bool IsEntityInAttackSight(GameEntity gameEntity)
@@ -383,10 +401,13 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (gameEntity == null)
             return false;
 
-        if (entityConfig.attackSight == 1)
+        //if (entityConfig.attackSight_config == 1)
+        if (runtimeData.attackSight == 1)
             return CurrentPoint.GetCellNeighbor().Contains(gameEntity.CurrentPoint);
         else
-            return beInRange(entityConfig.attackSight, gameEntity.CurrentPoint, ForAttack);
+            //return beInRange(entityConfig.attackSight_config, gameEntity.CurrentPoint, ForAttack);
+            return beInRange(runtimeData.attackSight, gameEntity.CurrentPoint, ForAttack);
+
     }
 
 
@@ -421,9 +442,9 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     public int GetPursueRangeEntity(GameEntity[] range)
     {
-        return GetRangeEntity(entityConfig.pursueSight, range);
+        //return GetRangeEntity(entityConfig.pursueSight_config, range);
+        return GetRangeEntity(runtimeData.pursueSight, range);
     }
-
 
 
     public void DoAttack(int i = 1)
@@ -431,14 +452,16 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (targetEntity != null)
             this.m_Transform.LookAt(targetEntity.m_Transform.position);
         this.entityVisual.PlayAttack(i);
-        this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
+        this.controllRemote.DoAttack(i);
 
-        if (i == 1)
-            runtimeData.cd1 -= 3;
-        else if (i == 2)
-            runtimeData.cd2 -= 5;
-        else if (i == 3)
-            runtimeData.cd3 -= 10;
+        BattleService battle = GameCore.GetRegistServices<BattleService>();
+        int skillID = 1;
+        if (entityConfig.skillSocketSet1 == null)
+        {
+            skillID = entityConfig.skillSocketSet1[i];
+        }
+        battle.QuestSkillCalculate(skillID, this.controllRemote, targetEntity.GetControllRemote());
+        this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
     }
 
 
@@ -446,6 +469,16 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     private void SendCmd(int fromID, Command msg, string arg)
     {
         actionRemote.SendCmd(fromID, msg, arg);
+    }
+
+    public GameEntityConfig GetStaticConfig()
+    {
+        return entityConfig;
+    }
+
+    public List<ItemsCanAffectRuntimeData> GetAffectSet()
+    {
+        return null;
     }
 }
 
@@ -493,6 +526,8 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
             actionRemote.Action2Entity(targetEntity);
         }
     }
+
+
     public void NoticeBeAimed(GameEntity who)
     {
         if (entityWhoAimAtMeSet.Contains(who))
@@ -507,6 +542,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         {
             if (SelectStatus == GameEntitySelectStatus.Selected)
             {
+                CleanLastEyeSight();
                 GameEntityMgr.SetSelectedEntity(null);
             }
             else
@@ -545,7 +581,8 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     private void UpdateCurrentEyeSight()
     {
-        setRange(entityConfig.eyeSight, ForEye);
+        //setRange(entityConfig.eyeSight_config, ForEye);
+        setRange(runtimeData.eyeSight, ForEye);
 
         foreach (var kvp in CellSelector.allowClickSet)
         {
@@ -663,10 +700,10 @@ public class GameEntityVisual
 
     internal async void PlayAttack(int i = 1)
     {
-        rootTrans.localScale = originalSize * 2;
+        //rootTrans.localScale = originalSize * 2;
         PlayAnim(EntityAnimEnum.Attack);
-        await new WaitForSeconds(1);
-        rootTrans.localScale = originalSize;
+        //await new WaitForSeconds(1);
+        //rootTrans.localScale = originalSize;
     }
 
 
@@ -829,28 +866,24 @@ public class GameEntityConfig
     public int mag_config;
     public int tili_config;
     public string tili_recovery_config;
-    public int maxSingleMove;
-    public int speedFactor;
-    public int eyeSight;
-    public int attackSight;
-    public int pursueSight;
+    public int maxSingleMove_config;
+    public int speed_config;
+    public int eyeSight_config;
+    public int attackSight_config;
+    public int pursueSight_config;
+    public int hujia_config;
+
+
+    public List<int> skillSocketSet1;
+    public List<int> skillSocketSet2;
+
+
+    public float cd1_config;
+    public float cd2_config;
+    public float cd3_config;
 }
 
-[System.Serializable]
-public struct GameEntityRuntimeData
-{
-    public float hp;
-    public float atk;
-    public float mag;
-    public float tili;
 
-    public float cd1;
-    public float cd2;
-    public float cd3;
-
-    public float deltaTili;
-    public float deltaTileTime;
-}
 
 
 public enum GameEntitySelectStatus

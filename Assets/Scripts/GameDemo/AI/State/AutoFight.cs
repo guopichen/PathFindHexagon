@@ -11,7 +11,7 @@ public class AutoFight : GSNPCStateRemote
     AttackTargetFullMap targetSensor = new AttackTargetFullMap();
     public void EvalRule()
     {
-        if(targetSensor.IsDirty)
+        if (targetSensor.IsDirty)
         {
             entity.AimAtTargetEntity(targetSensor.Value);
         }
@@ -38,7 +38,6 @@ public class AutoFight : GSNPCStateRemote
 
     public void UpdateSensor()
     {
-        if(entity.GetControllType() == EntityControllType.Player)
         targetSensor.TakeSample(entity);
     }
 
@@ -70,15 +69,6 @@ public class AutoFight : GSNPCStateRemote
         }
     }
 
-    IEnumerator playerAction2Entity()
-    {
-        while (entity.GetTargetEntity() != null)
-        {
-            yield return move2target();
-        }
-    }
-
-
     private void DoAttack()
     {
         entity.DoAttack();
@@ -96,6 +86,7 @@ public class AutoFight : GSNPCStateRemote
                 {
                     DoAttack();
                 }
+
                 yield return new WaitForEndOfFrame();
             }
             else
@@ -117,7 +108,10 @@ public class AutoFight : GSNPCStateRemote
                         {
                             yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
                             if (entity.IsTargetEntityInAttackSight())
+                            {
+                                entity.GetEntityVisual().PlayAnim(EntityAnimEnum.Idle);
                                 yield break;
+                            }
                         }
                         startIndex = startIndex + 1;
                     }

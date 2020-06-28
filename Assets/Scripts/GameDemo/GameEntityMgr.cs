@@ -5,7 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class GameEntityMgr : GameServiceBase
+public interface GameEntityMgrRemote
+{
+    List<GameEntity> GetAllPlayers();
+    void ChangeAllPlayerEntityStrategy(GSNPCStrategyEnum strategy);
+    void ChangePlayerEntityStrategy(int entityID, GSNPCStrategyEnum strategy);
+}
+
+public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
 {
     public static GameEntityMgr Instance { get; private set; }
 
@@ -106,6 +113,7 @@ public class GameEntityMgr : GameServiceBase
         if (SelectedEntity != null)
         {
             SelectedEntity.AimAtTargetEntity(null);
+            SelectedEntity.PredictPathWillChange();
         }
     }
 
@@ -202,5 +210,25 @@ public class GameEntityMgr : GameServiceBase
         initImplement(GameCore.GetRegistServices<MapController>());
     }
 
+    public List<GameEntity> GetAllPlayers()
+    {
+        return playerEntities;
+    }
 
+    public void ChangeAllPlayerEntityStrategy(GSNPCStrategyEnum strategy)
+    {
+        foreach (GameEntity entity in playerEntities)
+        {
+            entity.ChangeStrategy(strategy);
+        }
+    }
+
+    public void ChangePlayerEntityStrategy(int entityID, GSNPCStrategyEnum strategy)
+    {
+        if(id2allEntities.TryGetValue(entityID,out GameEntity entity))
+        {
+            if (entity.GetControllType() == EntityControllType.Player)
+                entity.ChangeStrategy(strategy);
+        }
+    }
 }

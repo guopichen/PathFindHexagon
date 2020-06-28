@@ -32,6 +32,7 @@ public class GameCore : MonoBehaviour
     private void initCore()
     {
         gameRemoteSet.Add(new GameEntityMgr());
+        gameRemoteSet.Add(new BattleService());
 
        
         coreStatus = GameStatus.Idle;

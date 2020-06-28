@@ -54,6 +54,12 @@ public static class HDebug
     {
         UnityEngine.Debug.Log(msg);
     }
+
+    [Conditional("HTools")]
+    public static void Error(object msg)
+    {
+        UnityEngine.Debug.LogError(msg);
+    }
 }
 
 

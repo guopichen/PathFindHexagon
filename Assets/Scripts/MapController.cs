@@ -41,9 +41,9 @@ namespace PathFind
             map.DivedIntoChuns(chunkWidth, chunkHeight);
             var mapSize = GetMapSize();
 
-            chunkGenerat(mapSize);
+            //chunkGenerat(mapSize);
 
-            //normalGenerate(mapSize);
+            normalGenerate(mapSize);
         }
 
         private void chunkGenerat(Vector2Int mapSize)
@@ -112,7 +112,7 @@ namespace PathFind
         {
             _cellEnd = _map.GetCell(point);
             OnEndCellSelect?.Invoke(_cellEnd);
-            Calculate();
+            //Calculate();
         }
 
         void Calculate()
@@ -120,6 +120,7 @@ namespace PathFind
             var path = _pathFinder.FindPathOnMap(_cellStart, _cellEnd, _map);
             OnPathFind?.Invoke(path);
         }
+
 
         private void OnDestroy()
         {
@@ -157,6 +158,11 @@ namespace PathFind
         public IPathFinder GetPathFinder()
         {
             return _pathFinder;
+        }
+
+        public void QuestNewPath()
+        {
+            Calculate();
         }
 
         private void OnDrawGizmos()

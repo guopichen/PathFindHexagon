@@ -80,26 +80,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entityID: 0
   entityConfig:
-    hp_config: 0
-    atk_config: 0
-    mag_config: 0
-    tili_config: 0
+    hp_config: 50
+    atk_config: 2
+    mag_config: 30
+    tili_config: 10
     tili_recovery_config: 
-    maxSingleMove: 10
-    speedFactor: 5
-    eyeSight: 7
-    attackSight: 1
-    pursueSight: 5
+    maxSingleMove_config: 7
+    speed_config: 5
+    eyeSight_config: 7
+    attackSight_config: 1
+    pursueSight_config: 3
+    hujia_config: 0
+    cd1_config: 0
+    cd2_config: 0
+    cd3_config: 0
   runtimeData:
     hp: 0
     atk: 0
     mag: 0
     tili: 0
+    hujia: 0
+    deltaTili: 0
+    deltaTiliTime: 0
+    maxSingleMove: 0
+    speed: 0
+    eyeSight: 0
+    attackSight: 0
+    pursueSight: 0
     cd1: 0
     cd2: 0
     cd3: 0
-    deltaTili: 0
-    deltaTileTime: 0
 --- !u!1 &2924238726347953792
 GameObject:
   m_ObjectHideFlags: 0

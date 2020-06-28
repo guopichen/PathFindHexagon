@@ -9,6 +9,6 @@ public class Skill :ScriptableObject
 {
 
     public int skillID;
-
+    public DamageTypeEnum damageType;
     
 }
