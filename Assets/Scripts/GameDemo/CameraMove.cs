@@ -26,7 +26,7 @@ public class CameraMove : MonoBehaviour, CameraMoveRemote
         }
         else
         {
-            GameEntity gameEntity = e.GetRandomActiveEntity();
+            GameEntity gameEntity = e.GetRandomAlivePlayerEntity();
             if (gameEntity != null)
             {
                 dest = gameEntity.CurrentPoint;

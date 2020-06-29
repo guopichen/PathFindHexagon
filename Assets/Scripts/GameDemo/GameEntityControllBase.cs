@@ -36,9 +36,13 @@ public interface GameEntityControllRemote : DamageRemote, RuntimeDataRemote
     void CalledEveryFrame();
     bool PAttack(int skillID);
     void DoAttack(int skillID);
+    float GetHPPer();
+    float GetMagicPer();
+    bool BeAlive();
 }
 
-public delegate void OnRuntimeValueChanged(float newValue, float delta);
+//public delegate void OnRuntimeValueChanged(int newValue, float delta);
+public delegate void OnRuntimeValueChanged(int entityID);
 
 
 public interface ControllEvent
@@ -53,15 +57,15 @@ public class GameEntityControllBase : GameEntityControllRemote
 {
     public static GameEntityControllBase emptyEntityControll = new GameEntityControllBase();
 
-    private GameEntityRuntimeData runtimeData;
-    private event OnRuntimeValueChanged hpEvent;
-    private event OnRuntimeValueChanged tiliEvent;
-
-
-    protected GameEntityControllBase()
+    private GameEntityRuntimeData runtimeData = new GameEntityRuntimeData();
+    //private event OnRuntimeValueChanged hpEvent;
+    private int id;
+    public void SetEntityID(int entityID)
     {
-        runtimeData = new GameEntityRuntimeData();
+        id = entityID;
     }
+
+    
 
     public bool BeAlive()
     {
@@ -86,8 +90,20 @@ public class GameEntityControllBase : GameEntityControllRemote
         if (delta != 0)
         {
             runtimeData.hp += delta;
-            hpEvent?.Invoke(runtimeData.hp, delta);
+            GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.hp, delta,GameEntityMgr.HP);
+            //hpEvent?.Invoke(id,runtimeData.hp, delta);
         }
+    }
+
+    public float GetHPPer()
+    {
+        return Mathf.Clamp01(runtimeData.hp / (1.0f *runtimeData.maxHP));
+    }
+
+    public float GetMagicPer()
+    {
+        return Mathf.Clamp01(runtimeData.mag / (1.0f * runtimeData.maxMag));
+
     }
 
 
@@ -99,7 +115,7 @@ public class GameEntityControllBase : GameEntityControllRemote
     public void ChangeTili(int delta = -1)
     {
         runtimeData.tili += delta;
-        tiliEvent?.Invoke(runtimeData.tili,delta);
+        GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.tili, delta,GameEntityMgr.Tili);
     }
 
     public void CalledEverySeconds()
@@ -150,8 +166,12 @@ public class GameEntityControllBase : GameEntityControllRemote
 
         GameEntityConfig config = forruntime.GetStaticConfig();
         runtimeData.hp = config.hp_config;
+        runtimeData.maxHP = config.hp_config;
+
         runtimeData.atk = config.atk_config;
         runtimeData.mag = config.mag_config;
+        runtimeData.maxMag = config.mag_config;
+
         runtimeData.tili = config.tili_config;
 
         //2s  +1 tili
@@ -181,11 +201,18 @@ public enum EntityControllType
 [System.Serializable]
 public class GameEntityRuntimeData
 {
-    public float hp;
+    public int hp;
+    public int maxHP;
 
     public float atk;
-    public float mag;
-    public float tili;
+
+
+    public int mag;
+    public int maxMag;
+
+    public int tili;
+    public int maxTili;
+
     public float hujia;
 
     //tili_recovery_config

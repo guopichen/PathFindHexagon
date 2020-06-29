@@ -81,7 +81,7 @@ MonoBehaviour:
   entityID: 0
   entityConfig:
     hp_config: 50
-    atk_config: 2
+    atk_config: 10
     mag_config: 30
     tili_config: 10
     tili_recovery_config: 
@@ -91,13 +91,17 @@ MonoBehaviour:
     attackSight_config: 1
     pursueSight_config: 3
     hujia_config: 0
+    skillSocketSet1: 010000000200000003000000
+    skillSocketSet2: 0800000009000000
     cd1_config: 0
     cd2_config: 0
     cd3_config: 0
   runtimeData:
+    maxHP: 0
     hp: 0
     atk: 0
     mag: 0
+    maxMag: 0
     tili: 0
     hujia: 0
     deltaTili: 0
@@ -107,9 +111,11 @@ MonoBehaviour:
     eyeSight: 0
     attackSight: 0
     pursueSight: 0
+    skillSockets: 
     cd1: 0
     cd2: 0
     cd3: 0
+  pathChanged: 1
 --- !u!1 &2924238726347953792
 GameObject:
   m_ObjectHideFlags: 0

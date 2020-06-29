@@ -12,6 +12,7 @@ public interface GameEntityRemote : GameEntityTransformRemote
 
     void UpdateEntityRuntime(float dt);
 
+
 }
 
 public interface GameEntityTransformRemote
@@ -73,7 +74,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     }
     public bool BeAlive()
     {
-        return true;
+        return controllRemote.BeAlive();
     }
 
     IEnumerator player_LogicSwitchA;
@@ -86,6 +87,11 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         m_Transform = this.transform;
         m_GameObject = this.gameObject;
         yield return null;
+        mapController = GameCore.GetRegistServices<MapController>();
+        currentCell = mapController.GetRandomCell().Point;
+        //mapController.GetCellView(new Vector2Int(0, 0)).GetPoint();
+        var mapSize = mapController.GetMapSize();
+        this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
 
         //设定职业
         actionEnum = EntityActionEnum.Warrior;
@@ -98,30 +104,35 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         player_AILogicSwitchB = actionRemote.AutoUpdate();
 
         //设定模型外观
-        entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID);
+        int playerIndex = GameEntityMgr.Instance.GetAllPlayers().IndexOf(this);
+        entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID, playerIndex);
+        int overrideY = 15;
+        entityVisual.SetCameraPosition(this.transform.position, overrideY);
 
         if (controllType == EntityControllType.Player)
         {
-            controllRemote = new PlayerEntitiyControll();
+            PlayerEntitiyControll player = new PlayerEntitiyControll();
+            player.SetEntityID(entityID);
+            controllRemote = player;
+            runtimeData = controllRemote.UpdateRuntimeData(this);
+
             //StartCoroutine(playerUpdate());
             runtimeSwitcher = player_LogicSwitchA;
             StartCoroutine(updateContainer());
         }
         else if (controllType == EntityControllType.AI)
         {
-            controllRemote = new AIEntitiyControll();
-            StartCoroutine(actionRemote.AutoUpdate());
+            AIEntitiyControll ai = new AIEntitiyControll();
+            ai.SetEntityID(entityID);
+            controllRemote = ai;
+            runtimeData = controllRemote.UpdateRuntimeData(this);
 
+            StartCoroutine(actionRemote.AutoUpdate());
         }
 
-        runtimeData = controllRemote.UpdateRuntimeData(this);
 
-        mapController = GameCore.GetRegistServices<MapController>();
 
-        currentCell = mapController.GetRandomCell().Point;
-        //mapController.GetCellView(new Vector2Int(0, 0)).GetPoint();
-        var mapSize = mapController.GetMapSize();
-        this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
+
         GameTimer.AwaitLoopSeconds(1, controllRemote.CalledEverySeconds).ForgetAwait();
 
 
@@ -134,6 +145,13 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         //    };
         //    randomMove();
         //}
+    }
+
+
+    string entityStoryName = "亚瑟";
+    public string GetEntityName()
+    {
+        return entityStoryName;
     }
 
     public GameEntityVisual GetEntityVisual()
@@ -155,7 +173,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     IEnumerator updateContainer()
     {
-        while (true)
+        while (BeAlive())
         {
             if (runtimeSwitcher != null && runtimeSwitcher.MoveNext())
             {
@@ -164,6 +182,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             else
                 yield return null;
         }
+        Debug.Log("Die");
+        entityVisual.PlayAnim(EntityAnimEnum.Death);
     }
     public bool pathChanged = true;
     Action onReachDst = delegate { };
@@ -344,7 +364,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             }
             else if (Input.GetKeyDown(KeyCode.P))
             {
-                ChangeStrategy(GSNPCStrategyEnum.AutoFight);
+                ChangeAutoPlayStrategy(GSNPCStrategyEnum.AutoFight);
             }
             else if (Input.GetKeyDown(KeyCode.O))
             {
@@ -353,10 +373,21 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         }
     }
 
-    public void ChangeStrategy(GSNPCStrategyEnum strategy)
+    public void ChangeAutoPlayStrategy(GSNPCStrategyEnum strategy)
     {
-        actionRemote.ChangeStrategy(GSNPCStrategyEnum.AutoFight);
+        if (controllType == EntityControllType.Player)
+        {
+            runtimeSwitcher = player_AILogicSwitchB;
+        }
+        actionRemote.ChangeStrategy(strategy);
     }
+
+    public void Back2Manual()
+    {
+        ChangeAutoPlayStrategy(GSNPCStrategyEnum.Empty);
+        runtimeSwitcher = player_LogicSwitchA;
+    }
+
 
     public void CalledEverySeconds()
     {
@@ -464,6 +495,24 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
     }
 
+    public List<int> GetdifferentSkills(List<int> skills)
+    {
+        if (skills == entityConfig.skillSocketSet1)
+            return entityConfig.skillSocketSet2;
+        else
+            return entityConfig.skillSocketSet1;
+    }
+
+    public List<int> GetNowSkillSockets()
+    {
+        return controllRemote.UpdateRuntimeData(null).skillSockets;
+    }
+
+    public void ChangeNowSkillSockets(List<int> skills)
+    {
+        controllRemote.UpdateRuntimeData(null).skillSockets = skills;
+    }
+
 
 
     private void SendCmd(int fromID, Command msg, string arg)
@@ -480,6 +529,10 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     {
         return null;
     }
+
+
+
+
 }
 
 public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler
@@ -661,13 +714,16 @@ public class GameEntityVisual
     private Animator m_anim;
     public bool modelLoaded = false;
 
+    private Camera myVisualCamera;
+
     Vector3 originalSize;
-    public GameEntityVisual(GameObject rootObj, int modelID)
+    int playerIndex;
+    public GameEntityVisual(GameObject rootObj, int modelID, int playerIndexOfTeam)
     {
         visualRootGo = rootObj;
         rootTrans = rootObj.transform;
         originalSize = rootTrans.localScale;
-
+        playerIndex = playerIndexOfTeam;
         loadModel("M" + modelID);
     }
 
@@ -685,9 +741,36 @@ public class GameEntityVisual
         myModelRoot.transform.localPosition = (Vector3.zero);
         myModelRoot.transform.localEulerAngles = Vector3.zero;
         body = myModelRoot.transform.Find(view.GetBodyTransformName());
+        body = body == null ? myModelRoot.transform : body;
         weapon = myModelRoot.transform.Find(view.GetWeaponTransformName());
+        weapon = weapon == null ? body : weapon;
         material = body?.GetComponent<Renderer>().material;
         m_anim = myModelRoot.GetComponent<Animator>();
+
+        string layername = "player";
+        if (playerIndex >= 0)
+        {
+            layername += (playerIndex + 1);
+
+        }
+        int layer = LayerMask.NameToLayer(layername);
+        body.gameObject.layer =
+        weapon.gameObject.layer = layer;
+
+        if (playerIndex >= 0 && false)
+        {
+            GameObject cameraObject = new GameObject(visualRootGo.name + playerIndex + "camera");
+            cameraObject.SetActive(false);
+            myVisualCamera = cameraObject.AddComponent<Camera>();
+
+            //Vector3 v = HexCoords.GetHexVisualCoords(dest);
+            //v.y = 20;
+
+            myVisualCamera.targetTexture = new RenderTexture(60, 60, 8);
+            myVisualCamera.cullingMask = 1 << layer;
+            cameraObject.SetActive(true);
+        }
+
 
         modelLoaded = true;
     }
@@ -785,7 +868,7 @@ public class GameEntityVisual
 
     private void Die()
     {
-        m_anim.SetTrigger(Animator.StringToHash("Death"));
+        m_anim.SetTrigger(Animator.StringToHash("Die"));
     }
 
     static Dictionary<EntityAnimEnum, EntityAnimStatus> anim2status = new Dictionary<EntityAnimEnum, EntityAnimStatus>()
@@ -829,6 +912,20 @@ public class GameEntityVisual
             case EntityAnimEnum.Skill:
                 m_anim.SetTrigger("Skill");
                 break;
+        }
+    }
+
+    public async void SetCameraPosition(Vector3 position, int overrideY)
+    {
+        while (!modelLoaded)
+        {
+            await new WaitForEndOfFrame();
+        }
+        if (myVisualCamera != null)
+        {
+            position.y = overrideY;
+            myVisualCamera.transform.position = position;
+            myVisualCamera.transform.LookAt(myModelRoot.transform);
         }
     }
 }

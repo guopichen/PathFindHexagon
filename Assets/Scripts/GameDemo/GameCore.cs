@@ -94,12 +94,20 @@ public class GameCore : MonoBehaviour
 
     internal static void SpawnPlayer()
     {
+        GameEntityMgr entityMgr = GetRegistServices<GameEntityMgr>();
+        int cnt = entityMgr.GetAllPlayers().Count;
+        if(cnt > ProjectConsts.MAXPLAYER_CONTROLL_ENTITY_CNT)
+        {
+            return;
+        }
+
+
         string prefabname = "GameEntity";
         GameObject prefab = Resources.Load<GameObject>(prefabname);
         GameObject clone = GameObject.Instantiate(prefab);
         GameEntity entity = clone.GetComponent<GameEntity>();
         entity.SetControllType(EntityControllType.Player);
-        GetRegistServices<GameEntityMgr>().RegEntity(clone.GetComponent<GameEntity>());
+        entityMgr.RegEntity(clone.GetComponent<GameEntity>());
 
     }
 

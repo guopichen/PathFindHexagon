@@ -35,7 +35,7 @@ public class BattleService : GameServiceBase, BattleServiceRemote
     {
         GameEntityRuntimeData senderRuntime = opSender.UpdateRuntimeData(null);
         GameEntityRuntimeData targetRuntime = opTarget.UpdateRuntimeData(null);
-        return new calculateResult() { type = resultEnum.enum1 | resultEnum.enum2, finalDamage = 2 };
+        return new calculateResult() { type = resultEnum.enum1 | resultEnum.enum2, finalDamage = 20 };
     }
 
     private enum resultEnum : short

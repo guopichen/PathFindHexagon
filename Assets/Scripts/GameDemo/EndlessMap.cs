@@ -32,7 +32,7 @@ public class EndlessMap : MonoBehaviour
     {
         if (controller == null || GameEntityMgr.Instance == null)
             return;
-        GameEntity entity = GameEntityMgr.Instance.GetRandomActiveEntity();
+        GameEntity entity = GameEntityMgr.Instance.GetRandomAlivePlayerEntity();
         Vector3 position_worldSpace = viewer.position;
 
         //坐标转换至chunkspace中

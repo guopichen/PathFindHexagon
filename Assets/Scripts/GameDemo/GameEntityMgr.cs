@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
+
 public interface GameEntityMgrRemote
 {
     List<GameEntity> GetAllPlayers();
@@ -21,7 +23,6 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         Instance = this;
     }
-
 
     private List<GameEntity> allEntities = new List<GameEntity>();
     private List<GameEntity> playerEntities = new List<GameEntity>();
@@ -95,6 +96,30 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         return null;
     }
 
+    public void tiliChangedCenter(int id, int tili, int delta)
+    {
+    }
+
+    internal void hpChangedCenter(int id, int hp, int delta)
+    {
+
+    }
+
+    public const int Tili = 1;
+    public const int HP = 2;
+
+    private OnRuntimeValueChanged OnEntityRuntimeChanged = delegate { };
+    public void AddEntityRuntimeValueChangedListener(OnRuntimeValueChanged yours)
+    {
+        OnEntityRuntimeChanged += yours;
+
+    }
+
+    public void valueChangedCenter(int id, int valueAfaterChange, int delta, int valueType)
+    {
+        OnEntityRuntimeChanged(id);
+    }
+
     //public GameEntity GetNearEntityFast(Vector2Int point)
     //{
     //    return null;
@@ -134,11 +159,12 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
 
     }
 
-    public GameEntity GetRandomActiveEntity()
+    public GameEntity GetRandomAlivePlayerEntity()
     {
-        if (allEntities.Count > 0)
+        foreach (GameEntity e in playerEntities)
         {
-            return allEntities[0];
+            if (e.BeAlive())
+                return e;
         }
         return null;
     }
@@ -154,25 +180,30 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             selectedEntity = value;
             if (selectedEntity != null)
                 GameCore.GetRegistServices<MapController>().SetStartPoint(selectedEntity.CurrentPoint);
+            OnSelectedEntityChanged();
             selectedEntity?.GainFocus();
         }
     }
 
-    public static bool EnableRandomMove = false;
 
     private void OnPathFind(IList<ICell> path)
     {
         SelectedEntity?.MoveAlongPath(path);
     }
 
+    public Action OnSelectedEntityChanged = delegate () { };
+
     public static void SetSelectedEntity(GameEntity gameEntity)
     {
+        if (Instance == null)
+            return;
         Instance.SelectedEntity = gameEntity;
+
     }
 
     public static GameEntity GetSelectedEntity()
     {
-        return Instance.SelectedEntity;
+        return Instance?.SelectedEntity;
     }
 
 
@@ -186,10 +217,8 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             entity.UpdateEntityRuntime(Time.deltaTime);
         }
 
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            EnableRandomMove = !EnableRandomMove;
-        }
+        if (SelectedEntity != null && SelectedEntity.BeAlive() == false)
+            SetSelectedEntity(null);
     }
 
     public override void OnStartGame()
@@ -219,16 +248,16 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         foreach (GameEntity entity in playerEntities)
         {
-            entity.ChangeStrategy(strategy);
+            entity.ChangeAutoPlayStrategy(strategy);
         }
     }
 
     public void ChangePlayerEntityStrategy(int entityID, GSNPCStrategyEnum strategy)
     {
-        if(id2allEntities.TryGetValue(entityID,out GameEntity entity))
+        if (id2allEntities.TryGetValue(entityID, out GameEntity entity))
         {
             if (entity.GetControllType() == EntityControllType.Player)
-                entity.ChangeStrategy(strategy);
+                entity.ChangeAutoPlayStrategy(strategy);
         }
     }
 }
