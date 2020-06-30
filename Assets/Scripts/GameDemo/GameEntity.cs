@@ -28,6 +28,10 @@ public interface IGameEntityInit
 
 
 
+
+
+
+
 public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityInit, IDataForCalculateEntityRuntimeData
 {
     public int entityID;
@@ -133,7 +137,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
 
 
-        GameTimer.AwaitLoopSeconds(1, controllRemote.CalledEverySeconds).ForgetAwait();
+        GameTimer.AwaitLoopSecondsBaseOnCore(1, controllRemote.CalledEverySeconds).ForgetAwait();
 
 
         //if (controllType == EntityControllType.AI)
@@ -182,7 +186,6 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             else
                 yield return null;
         }
-        Debug.Log("Die");
         entityVisual.PlayAnim(EntityAnimEnum.Death);
     }
     public bool pathChanged = true;
@@ -535,6 +538,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
 }
 
+
 public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IPointerExitHandler
 {
     GameEntitySelectStatus selectStatus = GameEntitySelectStatus.None;
@@ -708,6 +712,9 @@ public class GameEntityVisual
     private Transform rootTrans;
     public Material material;
 
+    private GameObject hudRoot;
+    private Material hudMaterial;
+
     private GameObject myModelRoot;
     private Transform body;
     private Transform weapon;
@@ -724,7 +731,22 @@ public class GameEntityVisual
         rootTrans = rootObj.transform;
         originalSize = rootTrans.localScale;
         playerIndex = playerIndexOfTeam;
+
+        hudRoot = rootTrans.Find("Visual/hud")?.gameObject;
+        if (hudRoot)
+            hudMaterial = hudRoot.GetComponent<Renderer>().material;
         loadModel("M" + modelID);
+
+        GameEntityMgr.Instance.AddEntityRuntimeValueChangedListenerByPlayerIndex(playerIndex, new OnRuntimeValueChanged(() =>
+        {
+            Debug.Log("1111111");
+            if (hudMaterial != null)
+            {
+                GameEntity entity = GameEntityMgr.Instance.GetAllPlayers()[playerIndex];
+                float hp = entity.GetControllRemote().GetHPPer();
+                SetHPPer(hp);
+            }
+        }));
     }
 
 
@@ -790,24 +812,24 @@ public class GameEntityVisual
     }
 
 
-    private EntityAnimStatus aniStatus = EntityAnimStatus.None;
+    private EntityAnimStatus statuse = EntityAnimStatus.None;
 
-    public EntityAnimStatus AniStatus
+    public EntityAnimStatus Status
     {
-        get => aniStatus;
+        get => statuse;
         set
         {
-            if (aniStatus == value || aniStatus == EntityAnimStatus.Death)
+            if (statuse == value || statuse == EntityAnimStatus.Death)
                 return;
             statusLoseFocus();
-            aniStatus = value;
+            statuse = value;
             statusGainFocus();
         }
     }
 
     private void statusLoseFocus()
     {
-        switch (aniStatus)
+        switch (statuse)
         {
 
             case EntityAnimStatus.Battle:
@@ -828,7 +850,7 @@ public class GameEntityVisual
 
     private void statusGainFocus()
     {
-        switch (aniStatus)
+        switch (statuse)
         {
 
             case EntityAnimStatus.Battle:
@@ -890,7 +912,7 @@ public class GameEntityVisual
         {
             await new WaitForEndOfFrame();
         }
-        AniStatus = status;//会播放动画
+        Status = status;//会播放动画
         //aniStatus = status;//不会播放动画
     }
 
@@ -898,19 +920,20 @@ public class GameEntityVisual
     {
         SetAniStatus(anim2status[anim]);//设置主状态
         //设置子状态所需
+        
         switch (anim)
         {
             case EntityAnimEnum.Attack:
-                m_anim.SetTrigger("Attack");
+                m_anim?.SetTrigger("Attack");
                 break;
             case EntityAnimEnum.Controlled:
-                m_anim.SetBool("Controlled", true);
+                m_anim?.SetBool("Controlled", true);
                 break;
             case EntityAnimEnum.Hit:
-                m_anim.SetTrigger("Hit");
+                m_anim?.SetTrigger("Hit");
                 break;
             case EntityAnimEnum.Skill:
-                m_anim.SetTrigger("Skill");
+                m_anim?.SetTrigger("Skill");
                 break;
         }
     }
@@ -927,6 +950,13 @@ public class GameEntityVisual
             myVisualCamera.transform.position = position;
             myVisualCamera.transform.LookAt(myModelRoot.transform);
         }
+    }
+
+    void SetHPPer(float hpper)
+    {
+        if (hpper <= 0)
+            hudRoot?.SetActive(false);
+        hudMaterial?.SetFloat("_Progress_A", hpper);
     }
 }
 

@@ -130,16 +130,19 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
                 yield return null;
             }
         }
+        entity.GetEntityVisual().Status = EntityAnimStatus.Death;
     }
 
 
     #region  原型  移动到可攻击敌人/关照友军的点后，使用之前选择好的技能进行挂机循环操作至 敌人死亡/友军被自己奶死（如果可以的话）
     protected IEnumerator playerAction2Entity()
     {
-        while (entity.GetTargetEntity() != null)
+        while (entity.BeAlive() && entity.GetTargetEntity() != null && entity.GetTargetEntity().BeAlive())
         {
             yield return move2target();
         }
+        if (entity.BeAlive())
+            entity.GetEntityVisual().Status = EntityAnimStatus.Idle;
     }
 
     protected IEnumerator move2target()

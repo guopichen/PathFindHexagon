@@ -42,7 +42,7 @@ public interface GameEntityControllRemote : DamageRemote, RuntimeDataRemote
 }
 
 //public delegate void OnRuntimeValueChanged(int newValue, float delta);
-public delegate void OnRuntimeValueChanged(int entityID);
+public delegate void OnRuntimeValueChanged();
 
 
 public interface ControllEvent

@@ -51,6 +51,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             {
                 playerEntities.Add(entity);
             }
+            entityID2ValuechangedDelegates.Add(key, new OnRuntimeValueChanged(() => { }));
 
         }
     }
@@ -108,16 +109,53 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     public const int Tili = 1;
     public const int HP = 2;
 
-    private OnRuntimeValueChanged OnEntityRuntimeChanged = delegate { };
-    public void AddEntityRuntimeValueChangedListener(OnRuntimeValueChanged yours)
-    {
-        OnEntityRuntimeChanged += yours;
+    //只要数据变动，若要更细致到hp的话，在valuechangedcenter处理
+    private Dictionary<int, OnRuntimeValueChanged> entityID2ValuechangedDelegates = new Dictionary<int, OnRuntimeValueChanged>();
 
+    public OnRuntimeValueChanged onSelectedEntityValueChange = delegate { };
+    public void AddEntityRuntimeValueChangedListenerByEntityID(int entityid, OnRuntimeValueChanged yours)
+    {
+        if(entityID2ValuechangedDelegates.ContainsKey(entityid))
+        {
+            OnRuntimeValueChanged onEntityRuntimeChanged = entityID2ValuechangedDelegates[entityid];
+            onEntityRuntimeChanged += yours;
+            entityID2ValuechangedDelegates[entityid] = onEntityRuntimeChanged;
+        }
+        else
+        {
+            entityID2ValuechangedDelegates.Add(entityid, yours);
+        }
+       
     }
+
+    public void AddEntityRuntimeValueChangedListenerByPlayerIndex(int indexOfTeam, OnRuntimeValueChanged yours)
+    {
+        if(playerEntities.Count > indexOfTeam && indexOfTeam >= 0)
+        {
+            GameEntity entity = playerEntities[indexOfTeam];
+            AddEntityRuntimeValueChangedListenerByEntityID(entity.entityID, yours);
+        }
+    }
+
+    public void ClearEntityRuntimeListener(int entityid)
+    {
+        OnRuntimeValueChanged onEntityRuntimeChanged = entityID2ValuechangedDelegates[entityid];
+        if (onEntityRuntimeChanged == null)
+            return;
+        //onEntityRuntimeChanged += yours;
+        onEntityRuntimeChanged = delegate { };
+    }
+
+    
+
 
     public void valueChangedCenter(int id, int valueAfaterChange, int delta, int valueType)
     {
-        OnEntityRuntimeChanged(id);
+        entityID2ValuechangedDelegates[id]?.Invoke();
+        if(selectedEntity != null && id == selectedEntity.entityID)
+        {
+            onSelectedEntityValueChange();
+        }
     }
 
     //public GameEntity GetNearEntityFast(Vector2Int point)
@@ -180,7 +218,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             selectedEntity = value;
             if (selectedEntity != null)
                 GameCore.GetRegistServices<MapController>().SetStartPoint(selectedEntity.CurrentPoint);
-            OnSelectedEntityChanged();
+            onEntitySelected();
             selectedEntity?.GainFocus();
         }
     }
@@ -191,7 +229,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         SelectedEntity?.MoveAlongPath(path);
     }
 
-    public Action OnSelectedEntityChanged = delegate () { };
+    public Action onEntitySelected = delegate () { };
 
     public static void SetSelectedEntity(GameEntity gameEntity)
     {
@@ -261,3 +299,9 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         }
     }
 }
+
+
+//public class EntityEvent
+//{
+//    public OnEntityDataChanged handler;
+//}

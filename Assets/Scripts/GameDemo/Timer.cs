@@ -15,9 +15,6 @@ public static class GameTimer
     public static async Task AwaitSeconds(float seconds, Action action)
     {
         await new WaitForSeconds(seconds);
-        //await GameCore.Instance.gameTick();
-        while (GameCore.GetGameStatus() != GameStatus.Run)
-            await new WaitForEndOfFrame();
         action();
     }
 
@@ -30,17 +27,29 @@ public static class GameTimer
         AwaitLoopSeconds(seconds, action).ForgetAwait();
     }
 
-    public static async Task AwaitSeconds(float seconds,Task t,Action<Task> t2)
-    {
-        await new WaitForSeconds(seconds);
-        while (GameCore.GetGameStatus() != GameStatus.Run)
-            await new WaitForEndOfFrame();
-        t.ContinueWith(t2).ForgetAwait();
-    }
     #endregion
 
-    #region 基于GameCore的情况
+    #region 基于GameCore的情况,时间流逝需要考虑到GameCore的状态，同时一定要在GameCore工作之后使用
+    public static async Task AwaitSecondsBaseOnCore(float seconds,Action action)
+    {
+        while (seconds > 0)
+        {
+            await GameCore.Instance.CoreTick();
+            seconds -= Time.deltaTime;
+        }
+        action();
+    }
 
+    public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Action action)
+    {
+        while (seconds > 0)
+        {
+            await GameCore.Instance.CoreTick();
+            seconds -= Time.deltaTime;
+        }
+        action();
+        AwaitLoopSecondsBaseOnCore(seconds, action).ForgetAwait();
+    }
 
     #endregion
 }

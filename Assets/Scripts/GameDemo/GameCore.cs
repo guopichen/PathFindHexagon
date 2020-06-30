@@ -34,7 +34,7 @@ public class GameCore : MonoBehaviour
         gameRemoteSet.Add(new GameEntityMgr());
         gameRemoteSet.Add(new BattleService());
 
-       
+
         coreStatus = GameStatus.Idle;
     }
     IEnumerator Start()
@@ -56,14 +56,12 @@ public class GameCore : MonoBehaviour
         }
     }
 
-    public IEnumerator gameTick()
+    public IEnumerator CoreTick()
     {
-        yield return null;
-        while(coreStatus == GameStatus.Run)
+        do
         {
             yield return null;
-
-        }
+        } while (coreStatus != GameStatus.Run);
     }
 
     internal static void RunOrPauseCore()
@@ -96,7 +94,7 @@ public class GameCore : MonoBehaviour
     {
         GameEntityMgr entityMgr = GetRegistServices<GameEntityMgr>();
         int cnt = entityMgr.GetAllPlayers().Count;
-        if(cnt > ProjectConsts.MAXPLAYER_CONTROLL_ENTITY_CNT)
+        if (cnt > ProjectConsts.MAXPLAYER_CONTROLL_ENTITY_CNT)
         {
             return;
         }
@@ -114,7 +112,7 @@ public class GameCore : MonoBehaviour
     private Dictionary<string, object> servicesUnknownSet = new Dictionary<string, object>();
     public static void RegistOtherServices<T>(T service) where T : class
     {
-        Type t =(service.GetType());
+        Type t = (service.GetType());
         string key = t.ToString();
         if (Instance.servicesUnknownSet.ContainsKey(key))
             return;
