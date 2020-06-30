@@ -42,13 +42,14 @@ public static class GameTimer
 
     public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Action action)
     {
+        float origin = seconds;
         while (seconds > 0)
         {
             await GameCore.Instance.CoreTick();
             seconds -= Time.deltaTime;
         }
         action();
-        AwaitLoopSecondsBaseOnCore(seconds, action).ForgetAwait();
+        AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
     }
 
     #endregion
