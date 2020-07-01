@@ -41,7 +41,7 @@ public class Daiji : GSNPCStateRemote
 
     public void UpdateSensor()
     {
-        inAttackSight = entity.IsTargetEntityInAttackSight();
+        inAttackSight = entity.IsTargetEntityInAttackSight() && entity.GetTargetEntity().BeAlive();
     }
 
     public void SendCmd(int fromID, Command msg, string arg)

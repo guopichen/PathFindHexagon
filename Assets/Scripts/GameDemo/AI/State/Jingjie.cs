@@ -11,7 +11,7 @@ public class Jingjie : GSNPCStateRemote
     AttackTarget targetSensor = new AttackTarget();
     public void EvalRule()
     {
-        if(targetSensor.IsDirty)
+        if (targetSensor.IsDirty)
         {
             entity.AimAtTargetEntity(targetSensor.Value);
         }
@@ -19,7 +19,7 @@ public class Jingjie : GSNPCStateRemote
 
     public void ExecuteAction()
     {
-        
+
     }
 
     public void GainFocus(GameEntity npc)
@@ -49,14 +49,14 @@ public class Jingjie : GSNPCStateRemote
             GameEntity fromEntity = GameCore.GetRegistServices<GameEntityMgr>().GetGameEntity(fromID);
             if (fromEntity != null && fromEntity != entity.GetTargetEntity())
             {
-                entity.AimAtTargetEntity(fromEntity,false);
+                entity.AimAtTargetEntity(fromEntity, false);
             }
         }
     }
 
     IEnumerator aiLogic()
     {
-        if (entity.IsTargetInPursueSight())
+        if (entity.IsTargetInPursueSight() && entity.GetTargetEntity().BeAlive() )
         {
             yield return move2target();
         }

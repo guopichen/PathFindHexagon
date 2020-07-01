@@ -23,12 +23,10 @@ public class BattleService : GameServiceBase, BattleServiceRemote
         calculateResult result = sss(skill, opSender, opTarget);
         if ((result.type & resultEnum.enum1) == resultEnum.enum1)
         {
-            Debug.Log(result.finalDamage * -4);
             opTarget.CaughtDamage(result.finalDamage, DamageTypeEnum.ColdWeapon);
         }
         if ((result.type & resultEnum.enum2) == resultEnum.enum2)
         {
-            Debug.Log(result.finalDamage * 100);
         }
     }
     private calculateResult sss(Skill skill, GameEntityControllRemote opSender, GameEntityControllRemote opTarget)

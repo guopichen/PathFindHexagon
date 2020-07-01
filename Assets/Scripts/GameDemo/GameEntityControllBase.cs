@@ -40,21 +40,23 @@ public interface GameEntityControllRemote : DamageRemote, RuntimeDataRemote
     float GetMagicPer();
     bool BeAlive();
 }
-
-//public delegate void OnRuntimeValueChanged(int newValue, float delta);
-public delegate void OnRuntimeValueChanged();
-
-
-public interface ControllEvent
+public enum ValueChangeType : int
 {
-    OnRuntimeValueChanged hpChanged { get; }
-    OnRuntimeValueChanged tiliChanged { get; }
-
+    Unknown = 0,
+    TiliDown,
+    TiliUp,
+    HPDown,
+    HPUp,
 }
+//public delegate void OnRuntimeValueChanged(int newValue, float delta);
+public delegate void OnRuntimeValueChanged(ValueChangeType type = ValueChangeType.Unknown);
+
+
 
 //设计意图：用来表示战斗相关的数据
 public class GameEntityControllBase : GameEntityControllRemote
 {
+
     public static GameEntityControllBase emptyEntityControll = new GameEntityControllBase();
 
     private GameEntityRuntimeData runtimeData = new GameEntityRuntimeData();
@@ -65,7 +67,7 @@ public class GameEntityControllBase : GameEntityControllRemote
         id = entityID;
     }
 
-    
+
 
     public bool BeAlive()
     {
@@ -90,14 +92,17 @@ public class GameEntityControllBase : GameEntityControllRemote
         if (delta != 0)
         {
             runtimeData.hp += delta;
-            GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.hp, delta,GameEntityMgr.HP);
+            if (delta > 0)
+                GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.hp, delta, ValueChangeType.HPUp);
+            else
+                GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.hp, delta, ValueChangeType.HPDown);
             //hpEvent?.Invoke(id,runtimeData.hp, delta);
         }
     }
 
     public float GetHPPer()
     {
-        return Mathf.Clamp01(runtimeData.hp / (1.0f *runtimeData.maxHP));
+        return Mathf.Clamp01(runtimeData.hp / (1.0f * runtimeData.maxHP));
     }
 
     public float GetMagicPer()
@@ -115,13 +120,21 @@ public class GameEntityControllBase : GameEntityControllRemote
     public void ChangeTili(int delta = -1)
     {
         runtimeData.tili += delta;
-        GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.tili, delta,GameEntityMgr.Tili);
+        if(delta > 0)
+        {
+            GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.tili, delta, ValueChangeType.TiliUp);
+        }
+        else
+            GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.tili, delta, ValueChangeType.TiliDown);
+
     }
 
     public void CalledEverySeconds()
     {
         //runtimeData.tili += runtimeData.deltaTili / runtimeData.deltaTileTime;
-        runtimeData.tili += 5;
+        runtimeData.tili += 1;
+        runtimeData.tili = Mathf.Clamp(runtimeData.tili, 0, runtimeData.maxTili);
+
         runtimeData.cd1 += 1;
         runtimeData.cd1 = Mathf.Clamp(runtimeData.cd1, -30, 0);
 
@@ -130,6 +143,7 @@ public class GameEntityControllBase : GameEntityControllRemote
 
         runtimeData.cd3 += 1;
         runtimeData.cd3 = Mathf.Clamp(runtimeData.cd3, -30, 0);
+
     }
 
     public void CalledEveryFrame()
@@ -173,6 +187,7 @@ public class GameEntityControllBase : GameEntityControllRemote
         runtimeData.maxMag = config.mag_config;
 
         runtimeData.tili = config.tili_config;
+        runtimeData.maxTili = config.tili_config;
 
         //2s  +1 tili
         runtimeData.deltaTili = 1;
@@ -189,7 +204,7 @@ public class GameEntityControllBase : GameEntityControllRemote
         return runtimeData;
     }
 
-   
+
 }
 
 public enum EntityControllType

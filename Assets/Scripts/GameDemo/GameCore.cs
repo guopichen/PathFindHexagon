@@ -4,14 +4,34 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public interface GameRemote
+public interface GameRemote: IGameInit, IGameStart,IGameUpdate, IGameEnd
 {
-    int UpdateInterval { get; }
-    void OnInitGame();
-    void OnStartGame();
-    void OnUpdateGame();
-    void OnEndGame();
 }
+
+public interface IGameInit
+{
+    void OnInitGame();
+}
+
+public interface IGameStart
+{
+    void OnStartGame();
+
+}
+
+
+public interface IGameUpdate
+{
+    int UpdateInterval { get; }//间隔帧数
+    void OnUpdateGame();
+
+}
+public interface IGameEnd
+{
+    void OnEndGame();
+
+}
+
 public enum GameStatus
 {
     None,
@@ -26,8 +46,13 @@ public class GameCore : MonoBehaviour
     public GameStatus coreStatus = GameStatus.None;
 
     private List<GameRemote> gameRemoteSet = new List<GameRemote>();
-    private Dictionary<GameRemote, int> updateTimeSet = new Dictionary<GameRemote, int>();
+    private Dictionary<IGameUpdate, int> updateTimeSet = new Dictionary<IGameUpdate, int>();
 
+
+    private List<IGameInit> callOnCoreFirstActive = new List<IGameInit>();
+    private List<IGameStart> callOnGameStart = new List<IGameStart>();
+    private List<IGameUpdate> callOnCoreUpdate = new List<IGameUpdate>();
+    private List<IGameEnd> callOnGameEnd = new List<IGameEnd>();
 
     private void initCore()
     {
@@ -43,6 +68,10 @@ public class GameCore : MonoBehaviour
         {
             remote.OnInitGame();
         }
+        foreach(IGameInit remote in callOnCoreFirstActive)
+        {
+            remote.OnInitGame();
+        }
         yield return new WaitForSeconds(3);
         StartGame();
     }
@@ -51,6 +80,10 @@ public class GameCore : MonoBehaviour
     {
         coreStatus = GameStatus.Run;
         foreach (GameRemote remote in gameRemoteSet)
+        {
+            remote.OnStartGame();
+        }
+        foreach(IGameStart remote in callOnGameStart)
         {
             remote.OnStartGame();
         }
@@ -94,7 +127,7 @@ public class GameCore : MonoBehaviour
     {
         GameEntityMgr entityMgr = GetRegistServices<GameEntityMgr>();
         int cnt = entityMgr.GetAllPlayers().Count;
-        if (cnt > ProjectConsts.MAXPLAYER_CONTROLL_ENTITY_CNT)
+        if (cnt >= ProjectConsts.MAXPLAYER_CONTROLL_ENTITY_CNT)
         {
             return;
         }
@@ -151,6 +184,21 @@ public class GameCore : MonoBehaviour
                 updateTimeSet[remote] = remote.UpdateInterval;
             }
         }
+
+        foreach(IGameUpdate remote in callOnCoreUpdate)
+        {
+            if (!updateTimeSet.ContainsKey(remote))
+            {
+                updateTimeSet.Add(remote, 0);
+            }
+            if (--updateTimeSet[remote] <= 0)
+            {
+                remote.OnUpdateGame();
+                updateTimeSet[remote] = remote.UpdateInterval;
+            }
+        }
+
+
     }
 
     private void OnDestroy()
@@ -160,6 +208,8 @@ public class GameCore : MonoBehaviour
         {
             remote.OnEndGame();
         }
+        foreach (IGameEnd remote in gameRemoteSet)
+            remote.OnEndGame();
     }
 
     public void RegGameRemote(GameRemote remote)
@@ -203,6 +253,23 @@ public class GameCore : MonoBehaviour
         return Instance.coreStatus;
     }
 
+    public void AddIGame(IGameInit init)
+    {
+        callOnCoreFirstActive.Add(init);
+    }
+    public void AddIGame(IGameStart start)
+    {
+        callOnGameStart.Add(start);
+    }
+
+    public void AddIGame(IGameUpdate update)
+    {
+        callOnCoreUpdate.Add(update);
+    }
+    public void AddIGame(IGameEnd end)
+    {
+        callOnGameEnd.Add(end);
+    }
 
 }
 

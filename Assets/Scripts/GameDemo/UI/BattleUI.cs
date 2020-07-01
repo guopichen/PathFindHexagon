@@ -11,10 +11,12 @@ public class BattleUI : MonoBehaviour
     {
         GameEntityMgr mgr = GameCore.GetRegistServices<GameEntityMgr>();
         mgr.onEntitySelected += UpdateBattleUI;
-        mgr.onSelectedEntityValueChange += () => {
+        mgr.onSelectedEntityValueChange += (changeType) => {
             selectedRoleArea.UpdateInfo();
         };
 
+
+        UpdateBattleUI();
     }
 
     void UpdateBattleUI()

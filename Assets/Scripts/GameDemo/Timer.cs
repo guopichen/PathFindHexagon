@@ -52,6 +52,21 @@ public static class GameTimer
         AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
     }
 
+    public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Func<bool> action)
+    {
+        float origin = seconds;
+        while (seconds > 0)
+        {
+            await GameCore.Instance.CoreTick();
+            seconds -= Time.deltaTime;
+        }
+        bool _continue = action();
+        if(_continue)
+        {
+            AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
+        }
+    }
+
     #endregion
 }
 

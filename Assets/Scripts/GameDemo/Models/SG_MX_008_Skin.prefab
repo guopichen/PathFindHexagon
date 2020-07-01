@@ -1139,7 +1139,6 @@ Transform:
   - {fileID: 5211290674696819323}
   - {fileID: 7339099000337091794}
   - {fileID: 6325193923045067458}
-  - {fileID: 413092838145253540}
   m_Father: {fileID: 8304865689778193444}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1198,12 +1197,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2958237723075692269}
-  m_LocalRotation: {x: 0.7070825, y: -0.0058622444, z: -0.7070825, w: -0.005859999}
-  m_LocalPosition: {x: 0.83665746, y: -0.038964715, z: -0.0000010511201}
-  m_LocalScale: {x: 1.058518, y: 1.058518, z: 1.058518}
+  m_LocalRotation: {x: -0.70122087, y: 0.00000017881393, z: 0.00000013248064, w: 0.7129441}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.0585178, y: 1.0585182, z: 1.0585183}
   m_Children: []
-  m_Father: {fileID: 5708357907102369047}
-  m_RootOrder: 5
+  m_Father: {fileID: 1847339328435036745}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!137 &8607694904121227062
 SkinnedMeshRenderer:
@@ -1490,6 +1489,7 @@ Transform:
   m_Children:
   - {fileID: 8304865689778193444}
   - {fileID: 8154055802639277046}
+  - {fileID: 413092838145253540}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1503,7 +1503,7 @@ Animator:
   m_GameObject: {fileID: 3456592480364679258}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 277887e625fc63e4b92d73efddda4ccc, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 22100000, guid: 5bb2e0d2751d78a44bc7f347bd8ed35b, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

@@ -16,11 +16,14 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
     public string SkillPrefabObj;
 
     private SkillUI[] skillUI;
-    private PrefabPoolableRemote poolRemote;
+    //private PrefabPoolableRemote poolRemote;
+    private GameObject prefab;
 
     void Awake()
     {
-        poolRemote = new PrefabPoolable(this.gameObject);
+        //poolRemote = new PrefabPoolable(this.gameObject);
+        prefab = Resources.Load<GameObject>(SkillPrefabObj);
+
     }
     void OnEnable()
     {
@@ -29,11 +32,13 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
 
     void Start()
     {
-        
+
     }
     void OnDestory()
     {
-        poolRemote.FreePooling();
+        PoolingSystem.Instance.FreePrefabPooling(prefab);
+        //poolRemote.FreePooling();
+        prefab = null;
     }
 
     private void generateSkillsUI()
@@ -45,15 +50,16 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
         skillUI = new SkillUI[cnt];
         for (int i = 0; i < cnt; i++)
         {
-            GameObject skillUIGo = poolRemote.CreatePrefab(SkillPrefabObj);
+            GameObject skillUIGo = //poolRemote.CreatePrefab(SkillPrefabObj);
+                PoolingSystem.Instance.GetOneClone_NotActive(prefab);
             Transform skillUIT = skillUIGo.transform;
+            skillUIT.SetParent(this.transform);
             skillUIT.localScale = Vector3.one;
             skillUIT.localPosition = Vector3.zero;
             skillUIT.SetSiblingIndex(i);
             skillUI[i] = skillUIGo.GetComponent<SkillUI>();
             //var data = xxxx
             int data = skill[i];
-            Debug.Log(data);
             skillUI[i].SetModel(data);
             skillUIGo.SetActive(true);
         }
@@ -78,11 +84,22 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
 
     public void DestoryOld()
     {
-        poolRemote.FreePooling();
+        if (skillUI != null)
+        {
+            foreach (var sk in skillUI)
+            {
+                PoolingSystem.Instance.ReturnClone(sk.gameObject);
+            }
+        }
     }
 
     public void GenerateNew()
     {
         generateSkillsUI();
+    }
+
+    public void OnStartGame()
+    {
+        UpdateUI();
     }
 }

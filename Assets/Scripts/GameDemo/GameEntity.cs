@@ -108,8 +108,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         player_AILogicSwitchB = actionRemote.AutoUpdate();
 
         //设定模型外观
-        int playerIndex = GameEntityMgr.Instance.GetAllPlayers().IndexOf(this);
-        entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID, playerIndex);
+        int index = GameEntityMgr.Instance.GetAllEntities().IndexOf(this);
+        entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID, index);
         int overrideY = 15;
         entityVisual.SetCameraPosition(this.transform.position, overrideY);
 
@@ -120,12 +120,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             controllRemote = player;
             runtimeData = controllRemote.UpdateRuntimeData(this);
 
-            //StartCoroutine(playerUpdate());
             runtimeSwitcher = player_LogicSwitchA;
             StartCoroutine(updateContainer());
         }
         else if (controllType == EntityControllType.AI)
         {
+            entityVisual.ChangeHPColor(Color.cyan);
             AIEntitiyControll ai = new AIEntitiyControll();
             ai.SetEntityID(entityID);
             controllRemote = ai;
@@ -133,7 +133,6 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
             StartCoroutine(actionRemote.AutoUpdate());
         }
-
 
 
 
@@ -157,6 +156,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     {
         return entityStoryName;
     }
+
 
     public GameEntityVisual GetEntityVisual()
     {
@@ -459,19 +459,30 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         return rangeSightArea.Contains(v);
     }
 
-    private int GetRangeEntity(int R, GameEntity[] range)
+    private int GetRangeEntity(int R, GameEntity[] range,bool wantopsite = true)
     {
         int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor, 1 << LayerMask.NameToLayer(ProjectConsts.Layer_Entity));
         int i = 0;
-        for (; i < length && i < range.Length; i++)
+
+        for (int m = 0; m < length && m < range.Length; m++)
         {
-            GameEntity entity = forSensor[i].GetComponentInParent<GameEntity>();
-            if (entity != null && entity != this)
+            GameEntity entity = forSensor[m].GetComponentInParent<GameEntity>();
+            if(wantopsite)
             {
-                range[i] = entity;
+                if (entity != null && entity.GetControllType() != this.controllType)
+                {
+                    range[i++] = entity;
+                }
+            }
+            else
+            {
+                if(entity != null && entity != this)
+                {
+                    range[i++] = entity;
+                }
             }
         }
-        return Mathf.Min(length, i + 1);
+        return Mathf.Min(length, i);
     }
 
     public int GetPursueRangeEntity(GameEntity[] range)
@@ -724,32 +735,34 @@ public class GameEntityVisual
     private Camera myVisualCamera;
 
     Vector3 originalSize;
-    int playerIndex;
-    public GameEntityVisual(GameObject rootObj, int modelID, int playerIndexOfTeam)
+    int index;
+    public GameEntityVisual(GameObject rootObj, int modelID, int index)
     {
         visualRootGo = rootObj;
         rootTrans = rootObj.transform;
         originalSize = rootTrans.localScale;
-        playerIndex = playerIndexOfTeam;
+        this.index = index;
 
         hudRoot = rootTrans.Find("Visual/hud")?.gameObject;
         if (hudRoot)
             hudMaterial = hudRoot.GetComponent<Renderer>().material;
         loadModel("M" + modelID);
 
-        GameEntityMgr.Instance.AddEntityRuntimeValueChangedListenerByPlayerIndex(playerIndex, new OnRuntimeValueChanged(() =>
+        GameEntityMgr.Instance.AddEntityRuntimeValueChangedListenerByIndex(this.index, (changeType) =>
         {
-            Debug.Log("1111111");
             if (hudMaterial != null)
             {
-                GameEntity entity = GameEntityMgr.Instance.GetAllPlayers()[playerIndex];
+                GameEntity entity = GameEntityMgr.Instance.GetAllEntities()[this.index];
                 float hp = entity.GetControllRemote().GetHPPer();
                 SetHPPer(hp);
             }
-        }));
+        });
     }
 
-
+    public void ChangeHPColor(Color c)
+    {
+        hudMaterial.SetColor("_Color_Blood", c);
+    }
     async void loadModel(string resName)
     {
         ResourceRequest quest = Resources.LoadAsync<ModelView>(resName);
@@ -770,28 +783,27 @@ public class GameEntityVisual
         m_anim = myModelRoot.GetComponent<Animator>();
 
         string layername = "player";
-        if (playerIndex >= 0)
-        {
-            layername += (playerIndex + 1);
-
-        }
+        //if (index >= 0)
+        //{
+        //    layername += (index + 1);
+        //}
         int layer = LayerMask.NameToLayer(layername);
         body.gameObject.layer =
         weapon.gameObject.layer = layer;
 
-        if (playerIndex >= 0 && false)
-        {
-            GameObject cameraObject = new GameObject(visualRootGo.name + playerIndex + "camera");
-            cameraObject.SetActive(false);
-            myVisualCamera = cameraObject.AddComponent<Camera>();
+        //if (index >= 0 && false)
+        //{
+        //    GameObject cameraObject = new GameObject(visualRootGo.name + index + "camera");
+        //    cameraObject.SetActive(false);
+        //    myVisualCamera = cameraObject.AddComponent<Camera>();
 
-            //Vector3 v = HexCoords.GetHexVisualCoords(dest);
-            //v.y = 20;
+        //    //Vector3 v = HexCoords.GetHexVisualCoords(dest);
+        //    //v.y = 20;
 
-            myVisualCamera.targetTexture = new RenderTexture(60, 60, 8);
-            myVisualCamera.cullingMask = 1 << layer;
-            cameraObject.SetActive(true);
-        }
+        //    myVisualCamera.targetTexture = new RenderTexture(60, 60, 8);
+        //    myVisualCamera.cullingMask = 1 << layer;
+        //    cameraObject.SetActive(true);
+        //}
 
 
         modelLoaded = true;
@@ -919,8 +931,8 @@ public class GameEntityVisual
     public void PlayAnim(EntityAnimEnum anim)
     {
         SetAniStatus(anim2status[anim]);//设置主状态
-        //设置子状态所需
-        
+                                        //设置子状态所需
+
         switch (anim)
         {
             case EntityAnimEnum.Attack:

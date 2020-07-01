@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-public class SkillUI : MonoBehaviour
+public class SkillUI : MonoBehaviour,PoolingGameObjectRemote
 {
     public Text text;
 
@@ -32,5 +32,13 @@ public class SkillUI : MonoBehaviour
     public void SetModel(int data)
     {
         skillID = data;
+    }
+
+    public void OnEnterPool()
+    {
+    }
+
+    public void OnExitPool()
+    {
     }
 }
