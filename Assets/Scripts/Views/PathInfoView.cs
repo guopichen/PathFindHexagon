@@ -15,11 +15,11 @@ namespace PathFind
 
 
         [SerializeField]
-        private Button addPlayer;
+        private Button addPlayer = null;
         [SerializeField]
-        private Button addNPC;
+        private Button addNPC = null;
         [SerializeField]
-        private Button runGameOrPauseGame;
+        private Button runGameOrPauseGame = null;
 
 
 
@@ -29,14 +29,14 @@ namespace PathFind
             m_mapController.OnEndCellSelect += OnEndCellSelect;
             m_mapController.OnPathFind += OnFindPath;
 
-            addPlayer.onClick.AddListener(GameCore.SpawnPlayer);
-            addNPC.onClick.AddListener(GameCore.SpawnNPC);
+            addPlayer.onClick.AddListener(()=> { GameCore.SpawnPlayer(EntityActionEnum.Mushi); });
+            addNPC.onClick.AddListener(()=> { GameCore.SpawnNPC(EntityActionEnum.Mushi); });
             runGameOrPauseGame.onClick.AddListener(GameCore.RunOrPauseCore);
 
-            aaa();
+            autoStartGameCore();
         }
 
-        private async void aaa()
+        private async void autoStartGameCore()
         {
             await new WaitForSeconds(1);
             addPlayer.onClick.Invoke();

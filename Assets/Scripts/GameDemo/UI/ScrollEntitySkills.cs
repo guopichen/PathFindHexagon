@@ -16,12 +16,10 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
     public string SkillPrefabObj;
 
     private SkillUI[] skillUI;
-    //private PrefabPoolableRemote poolRemote;
     private GameObject prefab;
 
     void Awake()
     {
-        //poolRemote = new PrefabPoolable(this.gameObject);
         prefab = Resources.Load<GameObject>(SkillPrefabObj);
 
     }
@@ -32,12 +30,20 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
 
     void Start()
     {
-
+        GameEntityMgr.Instance.onSelectedEntityValueChange += (eventType) =>
+        {
+            if (eventType == ValueChangeType.AutoSkillChange)
+            {
+                foreach (SkillUI ui in skillUI)
+                {
+                    ui.selectBg?.SetActive(GameEntityMgr.GetSelectedEntity().GetControllRemote().SelectedSkillID == ui.GetData());
+                }
+            }
+        };
     }
     void OnDestory()
     {
         PoolingSystem.Instance.FreePrefabPooling(prefab);
-        //poolRemote.FreePooling();
         prefab = null;
     }
 

@@ -7,8 +7,25 @@ using UnityEngine;
 
 public class Skill :ScriptableObject
 {
-
+    public const int PingA = 1;
     public int skillID;
-    public DamageTypeEnum damageType;
-    
+    public EntityAnimEnum playAniWhenRelease;//决定用什么动作
+
+    public float cd;
+
+    public ValueChangeType skillEffectType;
+}
+
+public enum ValueChangeType : int
+{
+    Unknown = 0,
+    TiliDown,
+    TiliUp,
+    HPDown,
+    HPUp,
+    HuaJiaDown,
+    HuaJiaUp,
+    AtkDown,
+    AtkUp,
+    AutoSkillChange,
 }

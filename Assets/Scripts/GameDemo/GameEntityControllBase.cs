@@ -34,20 +34,15 @@ public interface GameEntityControllRemote : DamageRemote, RuntimeDataRemote
     void ChangeTili(int delta = -1);
     void CalledEverySeconds();
     void CalledEveryFrame();
-    bool PAttack(int skillID);
-    void DoAttack(int skillID);
+    bool PReleaseSkill(int skillID);
+    void DoReleaseSkill(Skill skill);
     float GetHPPer();
     float GetMagicPer();
     bool BeAlive();
+    int SelectedSkillID { get; }
+    void ChangeSelectedSkill(int skillid);
 }
-public enum ValueChangeType : int
-{
-    Unknown = 0,
-    TiliDown,
-    TiliUp,
-    HPDown,
-    HPUp,
-}
+
 //public delegate void OnRuntimeValueChanged(int newValue, float delta);
 public delegate void OnRuntimeValueChanged(ValueChangeType type = ValueChangeType.Unknown);
 
@@ -60,8 +55,10 @@ public class GameEntityControllBase : GameEntityControllRemote
     public static GameEntityControllBase emptyEntityControll = new GameEntityControllBase();
 
     private GameEntityRuntimeData runtimeData = new GameEntityRuntimeData();
-    //private event OnRuntimeValueChanged hpEvent;
     private int id;
+
+    public int SelectedSkillID => runtimeData.selectSkillID;
+
     public void SetEntityID(int entityID)
     {
         id = entityID;
@@ -96,7 +93,6 @@ public class GameEntityControllBase : GameEntityControllRemote
                 GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.hp, delta, ValueChangeType.HPUp);
             else
                 GameEntityMgr.Instance.valueChangedCenter(id, runtimeData.hp, delta, ValueChangeType.HPDown);
-            //hpEvent?.Invoke(id,runtimeData.hp, delta);
         }
     }
 
@@ -135,42 +131,30 @@ public class GameEntityControllBase : GameEntityControllRemote
         runtimeData.tili += 1;
         runtimeData.tili = Mathf.Clamp(runtimeData.tili, 0, runtimeData.maxTili);
 
-        runtimeData.cd1 += 1;
-        runtimeData.cd1 = Mathf.Clamp(runtimeData.cd1, -30, 0);
 
-        runtimeData.cd2 += 1;
-        runtimeData.cd2 = Mathf.Clamp(runtimeData.cd2, -30, 0);
-
-        runtimeData.cd3 += 1;
-        runtimeData.cd3 = Mathf.Clamp(runtimeData.cd3, -30, 0);
-
+        foreach(int equipSkill in runtimeData.activeSkillSockets)
+        {
+            if(runtimeData.cdSet.ContainsKey(equipSkill))
+            {
+                runtimeData.cdSet[equipSkill] += 1;
+                runtimeData.cdSet[equipSkill] = Mathf.Clamp(runtimeData.cdSet[equipSkill], -30, 0);
+            }
+        }
     }
 
     public void CalledEveryFrame()
     {
+
     }
 
-    public bool PAttack(int i)
+    public bool PReleaseSkill(int skillID)
     {
-        bool cd = false;
-        if (i == 1)
-            cd = runtimeData.cd1 >= 0;
-        else if (i == 2)
-            cd = runtimeData.cd2 >= 0;
-        else if (i == 3)
-            cd = runtimeData.cd3 >= 0;
-
-        return cd;
+        return runtimeData.cdSet[skillID] >= 0;
     }
 
-    public void DoAttack(int i)
+    public void DoReleaseSkill(Skill skill)
     {
-        if (i == 1)
-            runtimeData.cd1 -= 3;
-        else if (i == 2)
-            runtimeData.cd2 -= 5;
-        else if (i == 3)
-            runtimeData.cd3 -= 10;
+        runtimeData.cdSet[skill.skillID] -= skill.cd;
     }
 
     public GameEntityRuntimeData UpdateRuntimeData(IDataForCalculateEntityRuntimeData forruntime)
@@ -200,11 +184,16 @@ public class GameEntityControllBase : GameEntityControllRemote
         runtimeData.pursueSight = config.pursueSight_config;
         runtimeData.hujia = config.hujia_config;
 
-        runtimeData.skillSockets = config.skillSocketSet1;
+        runtimeData.ChangeActiveSkillSockets(config.skillSocketSet1);
         return runtimeData;
     }
 
-
+    public void ChangeSelectedSkill(int skillid)
+    {
+        int lastselected = runtimeData.selectSkillID;
+        runtimeData.selectSkillID = skillid;
+        GameEntityMgr.Instance.valueChangedCenter(id, skillid, lastselected, ValueChangeType.AutoSkillChange);
+    }
 }
 
 public enum EntityControllType
@@ -240,11 +229,22 @@ public class GameEntityRuntimeData
     public int attackSight;
     public int pursueSight;
 
-
-    public List<int> skillSockets;
-    public float cd1;
-    public float cd2;
-    public float cd3;
+    public int selectSkillID = Skill.PingA;
 
 
+
+    public List<int> activeSkillSockets;
+    public Dictionary<int, float> cdSet = new Dictionary<int, float>();
+
+
+    public void ChangeActiveSkillSockets(List<int> newSockets)
+    {
+        foreach(int skill in newSockets)
+        {
+            if (!cdSet.ContainsKey(skill))
+                cdSet.Add(skill, 0);
+        }
+        activeSkillSockets = newSockets;
+    }
 }
+

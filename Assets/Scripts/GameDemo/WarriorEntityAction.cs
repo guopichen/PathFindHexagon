@@ -9,18 +9,14 @@ public partial class WarriorEntityAction : GameEntityAction
     {
 
     }
-    public override async void Action2Entity(GameEntity targetEntity)
-    {
-        if (entity.GetControllType() == EntityControllType.Player)
-        {
-            await playerAction2Entity();
-        }
-        else if (entity.GetControllType() == EntityControllType.AI)
-        {
-            //await aiAction2Entity();//已由状态机代替
-        }
-    }
-   
+    //public override async void Action2Entity(GameEntity targetEntity)
+    //{
+    //    if (entity.GetControllType() == EntityControllType.Player)
+    //    {
+    //        await playerAction2Entity();
+    //    }
+    //}
+
 
     #region AI 测试原型
 

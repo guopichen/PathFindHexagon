@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00efd3a0034928746bc4803e545f1c78, type: 3}
+  m_Name: Config_Zhanshi
+  m_EditorClassIdentifier: 
+  hp_config: 50
+  atk_config: 3
+  mag_config: 10
+  tili_config: 10
+  tili_recovery_config: 
+  maxSingleMove_config: 8
+  speed_config: 5
+  eyeSight_config: 7
+  attackSight_config: 2
+  pursueSight_config: 5
+  hujia_config: 2
+  skillSocketSet1: 010000000200000003000000
+  skillSocketSet2: 0400000005000000
+  cd1_config: 0
+  cd2_config: 0
+  cd3_config: 0
+  zhiye: 1

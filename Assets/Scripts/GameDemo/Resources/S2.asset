@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: S2
   m_EditorClassIdentifier: 
   skillID: 2
+  playAniWhenRelease: 3
+  cd: 4
+  skillEffectType: 1

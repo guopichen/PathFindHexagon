@@ -112,18 +112,19 @@ public class GameCore : MonoBehaviour
             Instance.coreStatus = GameStatus.Run;
     }
 
-    internal static void SpawnNPC()
+    internal static void SpawnNPC(EntityActionEnum zhiye)
     {
         string prefabname = "GameEntity";
         GameObject prefab = Resources.Load<GameObject>(prefabname);
         GameObject clone = GameObject.Instantiate(prefab);
         clone.name = "npc";
         GameEntity entity = clone.GetComponent<GameEntity>();
+        entity.SetEntityZhiyeConfig(zhiye);
         entity.SetControllType(EntityControllType.AI);
         GetRegistServices<GameEntityMgr>().RegEntity(entity);
     }
 
-    internal static void SpawnPlayer()
+    internal static void SpawnPlayer(EntityActionEnum zhiye)
     {
         GameEntityMgr entityMgr = GetRegistServices<GameEntityMgr>();
         int cnt = entityMgr.GetAllPlayers().Count;
@@ -132,11 +133,11 @@ public class GameCore : MonoBehaviour
             return;
         }
 
-
         string prefabname = "GameEntity";
         GameObject prefab = Resources.Load<GameObject>(prefabname);
         GameObject clone = GameObject.Instantiate(prefab);
         GameEntity entity = clone.GetComponent<GameEntity>();
+        entity.SetEntityZhiyeConfig(zhiye);
         entity.SetControllType(EntityControllType.Player);
         entityMgr.RegEntity(clone.GetComponent<GameEntity>());
 

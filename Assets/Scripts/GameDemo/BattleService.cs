@@ -20,10 +20,11 @@ public class BattleService : GameServiceBase, BattleServiceRemote
             HDebug.Error("null skill " + skill);
             return;
         }
+        opSender.DoReleaseSkill(skill);
         calculateResult result = sss(skill, opSender, opTarget);
         if ((result.type & resultEnum.enum1) == resultEnum.enum1)
         {
-            opTarget.CaughtDamage(result.finalDamage, DamageTypeEnum.ColdWeapon);
+            opTarget.CaughtDamage(result.damagePart.finalDamage, DamageTypeEnum.ColdWeapon);
         }
         if ((result.type & resultEnum.enum2) == resultEnum.enum2)
         {
@@ -33,7 +34,7 @@ public class BattleService : GameServiceBase, BattleServiceRemote
     {
         GameEntityRuntimeData senderRuntime = opSender.UpdateRuntimeData(null);
         GameEntityRuntimeData targetRuntime = opTarget.UpdateRuntimeData(null);
-        return new calculateResult() { type = resultEnum.enum1 | resultEnum.enum2, finalDamage = 2 };
+        return new calculateResult() { type = resultEnum.enum1 | resultEnum.enum2, damagePart = new damageResult() { finalDamage = Mathf.CeilToInt(skill.cd * 2) * 0 } };
     }
 
     private enum resultEnum : short
@@ -47,7 +48,7 @@ public class BattleService : GameServiceBase, BattleServiceRemote
     private class calculateResult
     {
         public resultEnum type;
-        public int finalDamage;
+        public damageResult damagePart;
     }
 
 
@@ -60,7 +61,7 @@ public class BattleService : GameServiceBase, BattleServiceRemote
 
 
     Dictionary<int, Skill> skillSet = new Dictionary<int, Skill>();
-    private Skill GetSkillByID(int skillID)
+    public Skill GetSkillByID(int skillID)
     {
         if (skillSet.TryGetValue(skillID, out Skill skill))
             return skill;

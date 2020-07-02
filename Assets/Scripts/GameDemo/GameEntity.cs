@@ -82,7 +82,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     }
 
     IEnumerator player_LogicSwitchA;
-    IEnumerator player_AILogicSwitchB;
+    IEnumerator playerAndAI_LogicSwitchB;
     IEnumerator runtimeSwitcher = null;
 
 
@@ -98,14 +98,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
 
         //设定职业
-        actionEnum = EntityActionEnum.Warrior;
-        if (actionEnum == EntityActionEnum.Warrior)
-            actionRemote = new WarriorEntityAction(this);
-        else
-            actionRemote = new GameEntityAction(this);
-
-        player_LogicSwitchA = playerUpdate();
-        player_AILogicSwitchB = actionRemote.AutoUpdate();
+        applyZhiye();
 
         //设定模型外观
         int index = GameEntityMgr.Instance.GetAllEntities().IndexOf(this);
@@ -130,8 +123,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             ai.SetEntityID(entityID);
             controllRemote = ai;
             runtimeData = controllRemote.UpdateRuntimeData(this);
-
-            StartCoroutine(actionRemote.AutoUpdate());
+            runtimeSwitcher = playerAndAI_LogicSwitchB;
+            StartCoroutine(updateContainer());
         }
 
 
@@ -150,6 +143,32 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         //}
     }
 
+    private void applyZhiye()
+    {
+        entityConfig = GameEntityMgr.Instance.GetConfigByZhiye(actionEnum);
+        switch (actionEnum)
+        {
+            case EntityActionEnum.Warrior:
+                actionRemote = new WarriorEntityAction(this);
+                break;
+            case EntityActionEnum.Magical:
+                break;
+            case EntityActionEnum.Mushi:
+                actionRemote = new MushiEntityAction(this);
+                break;
+            case EntityActionEnum.None:
+            default:
+                actionRemote = new GameEntityAction(this);
+                break;
+        }
+        player_LogicSwitchA = playerUpdate();
+        playerAndAI_LogicSwitchB = actionRemote.AutoUpdate();
+    }
+
+    public void SetEntityZhiyeConfig(EntityActionEnum zhiye)
+    {
+        actionEnum = zhiye;
+    }
 
     string entityStoryName = "亚瑟";
     public string GetEntityName()
@@ -187,6 +206,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
                 yield return null;
         }
         entityVisual.PlayAnim(EntityAnimEnum.Death);
+        yield return new WaitForSeconds(3);
+        GameEntityMgr.Respawn(this);
     }
     public bool pathChanged = true;
     Action onReachDst = delegate { };
@@ -371,7 +392,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             }
             else if (Input.GetKeyDown(KeyCode.O))
             {
-                runtimeSwitcher = player_AILogicSwitchB;
+                runtimeSwitcher = playerAndAI_LogicSwitchB;
             }
         }
     }
@@ -380,7 +401,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     {
         if (controllType == EntityControllType.Player)
         {
-            runtimeSwitcher = player_AILogicSwitchB;
+            runtimeSwitcher = playerAndAI_LogicSwitchB;
         }
         actionRemote.ChangeStrategy(strategy);
     }
@@ -397,9 +418,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     }
 
-    public bool PAttack(int i = 1)
+    public void SelectSkill(int skillID)
     {
-        return controllRemote.PAttack(i);
+        controllRemote.ChangeSelectedSkill(skillID);
+    }
+
+    public bool PReleaseSkill(int selectSkillID)
+    {
+        return controllRemote.PReleaseSkill(selectSkillID);
     }
 
     public bool IsTargetEntityInAttackSight()
@@ -459,7 +485,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         return rangeSightArea.Contains(v);
     }
 
-    private int GetRangeEntity(int R, GameEntity[] range,bool wantopsite = true)
+    private int GetRangeEntity(int R, GameEntity[] range, bool wantopsite = true)
     {
         int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor, 1 << LayerMask.NameToLayer(ProjectConsts.Layer_Entity));
         int i = 0;
@@ -467,7 +493,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         for (int m = 0; m < length && m < range.Length; m++)
         {
             GameEntity entity = forSensor[m].GetComponentInParent<GameEntity>();
-            if(wantopsite)
+            if (wantopsite)
             {
                 if (entity != null && entity.GetControllType() != this.controllType)
                 {
@@ -476,7 +502,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             }
             else
             {
-                if(entity != null && entity != this)
+                if (entity != null && entity != this)
                 {
                     range[i++] = entity;
                 }
@@ -492,20 +518,19 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     }
 
 
-    public void DoAttack(int i = 1)
+    public void DoReleaseSkill(int selectSkillID)
     {
         if (targetEntity != null)
             this.m_Transform.LookAt(targetEntity.m_Transform.position);
-        this.entityVisual.PlayAttack(i);
-        this.controllRemote.DoAttack(i);
+
+        EntityAnimEnum s = EntityAnimEnum.Attack;
+        Skill skill = GameCore.GetRegistServices<BattleService>().GetSkillByID(selectSkillID);
+        if (skill != null)
+            s = skill.playAniWhenRelease;
+        this.entityVisual.PlayReleaseSkill(s);
 
         BattleService battle = GameCore.GetRegistServices<BattleService>();
-        int skillID = 1;
-        if (entityConfig.skillSocketSet1 == null)
-        {
-            skillID = entityConfig.skillSocketSet1[i];
-        }
-        battle.QuestSkillCalculate(skillID, this.controllRemote, targetEntity.GetControllRemote());
+        battle.QuestSkillCalculate(selectSkillID, this.controllRemote, targetEntity.GetControllRemote());
         this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
     }
 
@@ -519,12 +544,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     public List<int> GetNowSkillSockets()
     {
-        return controllRemote.UpdateRuntimeData(null).skillSockets;
+        return controllRemote.UpdateRuntimeData(null).activeSkillSockets;
     }
 
     public void ChangeNowSkillSockets(List<int> skills)
     {
-        controllRemote.UpdateRuntimeData(null).skillSockets = skills;
+        controllRemote.UpdateRuntimeData(null).ChangeActiveSkillSockets(skills);
     }
 
 
@@ -815,12 +840,9 @@ public class GameEntityVisual
         material?.SetColor("_Color", c);
     }
 
-    internal async void PlayAttack(int i = 1)
+    internal void PlayReleaseSkill(EntityAnimEnum i)
     {
-        //rootTrans.localScale = originalSize * 2;
-        PlayAnim(EntityAnimEnum.Attack);
-        //await new WaitForSeconds(1);
-        //rootTrans.localScale = originalSize;
+        PlayAnim(i);
     }
 
 
@@ -972,6 +994,71 @@ public class GameEntityVisual
     }
 }
 
+
+public partial class GameEntity
+{
+    public IEnumerator playerAction2Entity()
+    {
+        while (BeAlive() && GetTargetEntity() != null && GetTargetEntity().BeAlive())
+        {
+            yield return move2target();
+            yield return doSkill2target();
+        }
+        if (BeAlive())
+            GetEntityVisual().Status = EntityAnimStatus.Idle;
+    }
+    public IEnumerator doSkill2target()
+    {
+        if (IsTargetEntityInAttackSight())
+        {
+            if (PReleaseSelectedSkill())
+            {
+                DoReleaseSelectedSkill();
+            }
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    public IEnumerator move2target()
+    {
+        MapController map = GameCore.GetRegistServices<MapController>();
+        IList<ICell> path = map.GetPathFinder().FindPathOnMap(
+            map.GetMap().GetCell(CurrentPoint),
+            map.GetMap().GetCell(GetTargetEntity().CurrentPoint),
+            map.GetMap());
+        if (path != null && path.Count >= 2)
+        {
+            path.RemoveAt(path.Count - 1);
+            ICell dest = path[path.Count - 1];
+            int startIndex = 0;
+            int destIndex = path.Count - 1;
+            while (true && startIndex < path.Count - 1)
+            {
+                if (startIndex + 1 <= path.Count - 1)
+                {
+                    if (IsTargetEntityInAttackSight() || GetControllRemote().PTiliMove() == false)
+                    {
+                        if (entityVisual.Status == EntityAnimStatus.Run)
+                            GetEntityVisual().SetAniStatus(EntityAnimStatus.Idle);
+                        yield break;
+                    }
+                    yield return movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
+                }
+                startIndex = startIndex + 1;
+            }
+        }
+    }
+    public void DoReleaseSelectedSkill()
+    {
+        DoReleaseSkill(GetControllRemote().SelectedSkillID);
+        HDebug.Log("entity " + gameObject.name + " release skill :" + GetControllRemote().SelectedSkillID + " target " + GetTargetEntity().gameObject.name);
+    }
+    public bool PReleaseSelectedSkill()
+    {
+        return PReleaseSkill(GetControllRemote().SelectedSkillID);
+    }
+}
+
 //说明动作的归属状态
 public enum EntityAnimStatus
 {
@@ -997,30 +1084,6 @@ public enum EntityAnimEnum
 }
 
 
-[System.Serializable]
-public class GameEntityConfig
-{
-    public int hp_config;
-    public int atk_config;
-    public int mag_config;
-    public int tili_config;
-    public string tili_recovery_config;
-    public int maxSingleMove_config;
-    public int speed_config;
-    public int eyeSight_config;
-    public int attackSight_config;
-    public int pursueSight_config;
-    public int hujia_config;
-
-
-    public List<int> skillSocketSet1;
-    public List<int> skillSocketSet2;
-
-
-    public float cd1_config;
-    public float cd2_config;
-    public float cd3_config;
-}
 
 
 

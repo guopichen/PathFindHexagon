@@ -34,6 +34,8 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     private Action onAddNewPlayerEntityDuringRun = delegate { };
     private Action onAddNewNPCEntityDuringRun = delegate { };
 
+    private GameEntityConfigSet entityConfigSet;
+
     public void OnAddNewPlayerDuringRun(Action action)
     {
         onAddNewPlayerEntityDuringRun += action;
@@ -42,7 +44,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         onAddNewNPCEntityDuringRun += action;
     }
-
+   
 
     public void RegEntity(GameEntity entity)
     {
@@ -145,10 +147,6 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             onEntityRuntimeChanged += yours;
             entityID2ValuechangedDelegates[entityid] = onEntityRuntimeChanged;
         }
-        //else
-        //{
-        //    entityID2ValuechangedDelegates.Add(entityid, yours);
-        //}
     }
 
     public void AddEntityRuntimeValueChangedListenerByIndex(int indexOfTeam, OnRuntimeValueChanged yours)
@@ -170,20 +168,14 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         }
     }
 
-
     public void ClearEntityRuntimeListener(int entityid)
     {
         OnRuntimeValueChanged onEntityRuntimeChanged = entityID2ValuechangedDelegates[entityid];
         if (onEntityRuntimeChanged == null)
             return;
-        //onEntityRuntimeChanged += yours;
         onEntityRuntimeChanged = delegate { };
+        entityID2ValuechangedDelegates[entityid] = onEntityRuntimeChanged;
     }
-
-
-    //public const int Tili = 1;
-    //public const int HP = 2;
-    
 
     public void valueChangedCenter(int id, int valueAfaterChange, int delta, ValueChangeType valueType)
     {
@@ -193,12 +185,6 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             onSelectedEntityValueChange(valueType);
         }
     }
-
-    //public GameEntity GetNearEntityFast(Vector2Int point)
-    //{
-    //    return null;
-    //}
-
 
     private void initImplement(MapController map)
     {
@@ -316,6 +302,13 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     public override void OnInitGame()
     {
         initImplement(GameCore.GetRegistServices<MapController>());
+        entityConfigSet = Resources.Load<GameEntityConfigSet>("EntityConfigSet");
+
+    }
+
+    public GameEntityConfig GetConfigByZhiye(EntityActionEnum zhiye)
+    {
+        return entityConfigSet.GetConfig(zhiye);
     }
 
     public List<GameEntity> GetAllPlayers()
@@ -344,10 +337,12 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
                 entity.ChangeAutoPlayStrategy(strategy);
         }
     }
+
+
+    public static void Respawn(GameEntity entity)
+    {
+        entity.gameObject.SetActive(false);
+    }
 }
 
 
-//public class EntityEvent
-//{
-//    public OnEntityDataChanged handler;
-//}

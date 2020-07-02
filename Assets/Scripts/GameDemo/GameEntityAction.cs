@@ -27,7 +27,7 @@ public enum EntityActionEnum
     None,
     Warrior,
     Magical,
-    Tank,
+    Mushi,
 }
 
 public enum GSNPCStrategyEnum
@@ -66,7 +66,6 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
         {
             case GSNPCStrategyEnum.AutoFight:
                 ChangeBehaveState(AutoFightRemote);
-
                 break;
             case GSNPCStrategyEnum.Daiji:
                 ChangeBehaveState(DaijiRemote);
@@ -97,9 +96,12 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
         return true;
     }
 
-    public virtual void Action2Entity(GameEntity gameEntity)
+    public virtual async void Action2Entity(GameEntity gameEntity)
     {
-        
+        if (entity.GetControllType() == EntityControllType.Player)
+        {
+            await entity.playerAction2Entity();
+        }
     }
 
     public virtual void Action2Point(int skillID, Vector2Int point)
@@ -172,12 +174,12 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
                 {
                     if (startIndex + 1 <= path.Count - 1)
                     {
-                        yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
-                        if (entity.IsTargetEntityInAttackSight())
+                        if (entity.IsTargetEntityInAttackSight() || entity.GetControllRemote().PTiliMove() == false)
                         {
                             entity.GetEntityVisual().PlayAnim(EntityAnimEnum.Idle);
                             yield break;
                         }
+                        yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
                     }
                     startIndex = startIndex + 1;
                 }
@@ -186,12 +188,12 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
     }
     protected void DoReleaseSelectedSkill()
     {
-        entity.DoAttack();
+        entity.DoReleaseSkill(entity.GetControllRemote().SelectedSkillID);
         HDebug.Log("entity " + entity.gameObject.name + ":" + "target " + entity.GetTargetEntity().gameObject.name);
     }
     protected bool PReleaseSelectedSkill()
     {
-        return entity.PAttack();
+        return entity.PReleaseSkill(entity.GetControllRemote().SelectedSkillID);
     }
     #endregion
 }

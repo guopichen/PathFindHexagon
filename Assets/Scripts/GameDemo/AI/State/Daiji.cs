@@ -33,9 +33,10 @@ public class Daiji : GSNPCStateRemote
 
     public async Task ExecuteActionAsync()
     {
-        if (inAttackSight && entity.PAttack())
+        GameEntityControllRemote remote = entity.GetControllRemote();
+        if (inAttackSight && remote.PReleaseSkill(remote.SelectedSkillID))
         {
-            entity.DoAttack();
+            entity.DoReleaseSkill(remote.SelectedSkillID);
         }
     }
 

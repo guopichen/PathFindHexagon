@@ -60,7 +60,9 @@ public class AutoFight : GSNPCStateRemote
     {
         if (entity.GetTargetEntity() != null && entity.GetTargetEntity().BeAlive())
         {
-            yield return move2target();
+            yield return entity.move2target();
+            yield return entity.doSkill2target();
+            //move2target();
         }
         else
         {
@@ -69,59 +71,62 @@ public class AutoFight : GSNPCStateRemote
         }
     }
 
-    private void DoAttack()
-    {
-        entity.DoAttack();
-        HDebug.Log("entity " + entity.gameObject.name + ":" + "target " + entity.GetTargetEntity().gameObject.name);
-    }
 
-    IEnumerator move2target()
-    {
+    #region 原型
+    //private void DoAttack()
+    //{
+    //    entity.DoReleaseSkill(entity.GetControllRemote().SelectedSkillID);
+    //    HDebug.Log("entity " + entity.gameObject.name + ":" + "target " + entity.GetTargetEntity().gameObject.name);
+    //}
 
-        //while (entity.targetEntity != null)
-        {
-            if (entity.IsTargetEntityInAttackSight())
-            {
-                if (PAttack())
-                {
-                    DoAttack();
-                }
+    //IEnumerator move2target()
+    //{
 
-                yield return new WaitForEndOfFrame();
-            }
-            else
-            {
-                MapController map = GameCore.GetRegistServices<MapController>();
-                IList<ICell> path = map.GetPathFinder().FindPathOnMap(
-                    map.GetMap().GetCell(entity.CurrentPoint),
-                    map.GetMap().GetCell(entity.GetTargetEntity().CurrentPoint),
-                    map.GetMap());
-                if (path != null && path.Count >= 2)
-                {
-                    path.RemoveAt(path.Count - 1);
-                    ICell dest = path[path.Count - 1];
-                    int startIndex = 0;
-                    int destIndex = path.Count - 1;
-                    while (true && startIndex < path.Count - 1)
-                    {
-                        if (startIndex + 1 <= path.Count - 1)
-                        {
-                            yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
-                            if (entity.IsTargetEntityInAttackSight())
-                            {
-                                entity.GetEntityVisual().PlayAnim(EntityAnimEnum.Idle);
-                                yield break;
-                            }
-                        }
-                        startIndex = startIndex + 1;
-                    }
-                }
-            }
-        }
-    }
+    //    //while (entity.targetEntity != null)
+    //    {
+    //        if (entity.IsTargetEntityInAttackSight())
+    //        {
+    //            if (PAttack())
+    //            {
+    //                DoAttack();
+    //            }
 
-    private bool PAttack()
-    {
-        return entity.PAttack();
-    }
+    //            yield return new WaitForEndOfFrame();
+    //        }
+    //        else
+    //        {
+    //            MapController map = GameCore.GetRegistServices<MapController>();
+    //            IList<ICell> path = map.GetPathFinder().FindPathOnMap(
+    //                map.GetMap().GetCell(entity.CurrentPoint),
+    //                map.GetMap().GetCell(entity.GetTargetEntity().CurrentPoint),
+    //                map.GetMap());
+    //            if (path != null && path.Count >= 2)
+    //            {
+    //                path.RemoveAt(path.Count - 1);
+    //                ICell dest = path[path.Count - 1];
+    //                int startIndex = 0;
+    //                int destIndex = path.Count - 1;
+    //                while (true && startIndex < path.Count - 1)
+    //                {
+    //                    if (startIndex + 1 <= path.Count - 1)
+    //                    {
+    //                        if (entity.IsTargetEntityInAttackSight() || entity.GetControllRemote().PTiliMove() == false)
+    //                        {
+    //                            entity.GetEntityVisual().PlayAnim(EntityAnimEnum.Idle);
+    //                            yield break;
+    //                        }
+    //                        yield return entity.movefromApoint2Bpoint(path[startIndex], path[startIndex + 1]);
+    //                    }
+    //                    startIndex = startIndex + 1;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+
+    //private bool PAttack()
+    //{
+    //    return entity.PReleaseSkill(entity.GetControllRemote().SelectedSkillID);
+    //}
+    #endregion
 }
