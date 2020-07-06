@@ -16,3 +16,6 @@ MonoBehaviour:
   playAniWhenRelease: 3
   cd: 4
   skillEffectType: 1
+  target: 0
+  subSkills: []
+  desc: "\u52A0\u62A4\u7532"

@@ -10,18 +10,18 @@ public class GameEntityConfigSet : ScriptableObject,ISerializationCallbackReceiv
 {
     public List<GameEntityConfig> allConfig;
 
-    private Dictionary<EntityActionEnum, GameEntityConfig> action2Config;
+    private Dictionary<EntityZhiye, GameEntityConfig> action2Config = new Dictionary<EntityZhiye, GameEntityConfig>();
 
     public void OnAfterDeserialize()
     {
-        action2Config = new Dictionary<EntityActionEnum, GameEntityConfig>();
-        allConfig.ForEach((x) => {
-            if (!action2Config.ContainsKey(x.zhiye))
-                action2Config.Add(x.zhiye,x);
-        });
+        //action2Config = new Dictionary<EntityActionEnum, GameEntityConfig>();
+        //allConfig.ForEach((x) => {
+        //    if (!action2Config.ContainsKey(x.zhiye))
+        //        action2Config.Add(x.zhiye,x);
+        //});
     }
 
-    public GameEntityConfig GetConfig(EntityActionEnum zhiye)
+    public GameEntityConfig GetConfig(EntityZhiye zhiye)
     {
         if (action2Config.TryGetValue(zhiye, out GameEntityConfig c))
             return c;
@@ -33,7 +33,7 @@ public class GameEntityConfigSet : ScriptableObject,ISerializationCallbackReceiv
 
     }
 
-    void Awake()
+    public void init()
     {
         allConfig.ForEach((x) => {
             if (!action2Config.ContainsKey(x.zhiye))

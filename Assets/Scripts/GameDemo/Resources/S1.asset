@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: S1
   m_EditorClassIdentifier: 
   skillID: 1
-  playAniWhenRelease: 3
-  cd: 1.5
+  playAniWhenRelease: 1
+  cd: 0.5
   skillEffectType: 1
+  target: 0
+  subSkills: []
+  desc: "\u5E73\u780D"

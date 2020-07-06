@@ -23,7 +23,7 @@ MonoBehaviour:
   attackSight_config: 2
   pursueSight_config: 5
   hujia_config: 2
-  skillSocketSet1: 010000000200000003000000
+  skillSocketSet1: 010000000200000005000000
   skillSocketSet2: 0400000005000000
   cd1_config: 0
   cd2_config: 0

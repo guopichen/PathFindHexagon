@@ -29,8 +29,8 @@ namespace PathFind
             m_mapController.OnEndCellSelect += OnEndCellSelect;
             m_mapController.OnPathFind += OnFindPath;
 
-            addPlayer.onClick.AddListener(()=> { GameCore.SpawnPlayer(EntityActionEnum.Mushi); });
-            addNPC.onClick.AddListener(()=> { GameCore.SpawnNPC(EntityActionEnum.Mushi); });
+            addPlayer.onClick.AddListener(()=> { GameCore.SpawnPlayer(EntityZhiye.Mushi); });
+            addNPC.onClick.AddListener(()=> { GameCore.SpawnNPC(EntityZhiye.Mushi); });
             runGameOrPauseGame.onClick.AddListener(GameCore.RunOrPauseCore);
 
             autoStartGameCore();

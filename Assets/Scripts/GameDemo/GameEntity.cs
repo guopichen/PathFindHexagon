@@ -54,20 +54,20 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     GameEntityVisual entityVisual;
 
 
-    EntityControllType controllType = EntityControllType.None;
+    EntityType controllType = EntityType.None;
     GameEntityControllRemote controllRemote = GameEntityControllBase.emptyEntityControll;
 
-    EntityActionEnum actionEnum = EntityActionEnum.None;
+    EntityZhiye actionEnum = EntityZhiye.None;
     GameEntityAction actionRemote;
 
 
     List<Skill> entitySkillSet;
-    public void SetControllType(EntityControllType entityControllStatus)
+    public void SetControllType(EntityType entityControllStatus)
     {
         this.controllType = entityControllStatus;
     }
 
-    public EntityControllType GetControllType()
+    public EntityType GetControllType()
     {
         return this.controllType;
     }
@@ -93,12 +93,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         yield return null;
         mapController = GameCore.GetRegistServices<MapController>();
         currentCell = mapController.GetRandomCell().Point;
-        //mapController.GetCellView(new Vector2Int(0, 0)).GetPoint();
         var mapSize = mapController.GetMapSize();
         this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
 
         //设定职业
         applyZhiye();
+
+        player_LogicSwitchA = playerUpdate();
+        playerAndAI_LogicSwitchB = actionRemote.AutoUpdate();
 
         //设定模型外观
         int index = GameEntityMgr.Instance.GetAllEntities().IndexOf(this);
@@ -106,23 +108,33 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         int overrideY = 15;
         entityVisual.SetCameraPosition(this.transform.position, overrideY);
 
-        if (controllType == EntityControllType.Player)
+        if (controllType == EntityType.Player)
         {
             PlayerEntitiyControll player = new PlayerEntitiyControll();
             player.SetEntityID(entityID);
             controllRemote = player;
-            runtimeData = controllRemote.UpdateRuntimeData(this);
+            runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
 
             runtimeSwitcher = player_LogicSwitchA;
             StartCoroutine(updateContainer());
         }
-        else if (controllType == EntityControllType.AI)
+        else if (controllType == EntityType.AI)
         {
             entityVisual.ChangeHPColor(Color.cyan);
             AIEntitiyControll ai = new AIEntitiyControll();
             ai.SetEntityID(entityID);
             controllRemote = ai;
-            runtimeData = controllRemote.UpdateRuntimeData(this);
+            runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
+            runtimeSwitcher = playerAndAI_LogicSwitchB;
+            StartCoroutine(updateContainer());
+        }
+        else if(controllType == EntityType.PlayerSummon)
+        {
+            entityVisual.ChangeHPColor(Color.yellow);
+            AIEntitiyControll ai = new AIEntitiyControll();
+            ai.SetEntityID(entityID);
+            controllRemote = ai;
+            runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
             runtimeSwitcher = playerAndAI_LogicSwitchB;
             StartCoroutine(updateContainer());
         }
@@ -148,24 +160,24 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         entityConfig = GameEntityMgr.Instance.GetConfigByZhiye(actionEnum);
         switch (actionEnum)
         {
-            case EntityActionEnum.Warrior:
+            case EntityZhiye.Warrior:
                 actionRemote = new WarriorEntityAction(this);
                 break;
-            case EntityActionEnum.Magical:
+            case EntityZhiye.Magical:
+                actionRemote = new WarriorEntityAction(this);
                 break;
-            case EntityActionEnum.Mushi:
+            case EntityZhiye.Mushi:
                 actionRemote = new MushiEntityAction(this);
                 break;
-            case EntityActionEnum.None:
+            case EntityZhiye.None:
             default:
                 actionRemote = new GameEntityAction(this);
                 break;
         }
-        player_LogicSwitchA = playerUpdate();
-        playerAndAI_LogicSwitchB = actionRemote.AutoUpdate();
+        
     }
 
-    public void SetEntityZhiyeConfig(EntityActionEnum zhiye)
+    public void SetEntityZhiyeConfig(EntityZhiye zhiye)
     {
         actionEnum = zhiye;
     }
@@ -242,7 +254,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
             if (currentPath != null && currentPath.Count > 0)
             {
-                if (controllRemote.PTiliMove())
+                if (controllRemote.PTiliMove(1))
                 {
                     if (currentPath.Count == 1)
                     {
@@ -271,7 +283,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         switch (e)
         {
             case entityEvent.enterNewCell:
-                controllRemote.ChangeTili();
+                controllRemote.ChangeTili(-1);
                 break;
         }
     }
@@ -372,6 +384,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     public void UpdateEntityRuntime(float dt)
     {
+        controllRemote?.CalledEveryFrame();
 #if UNITY_EDITOR
         unityTest();
 #endif
@@ -380,7 +393,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     private void unityTest()
     {
-        if (controllType == EntityControllType.Player)
+        if (controllType == EntityType.Player)
         {
             if (Input.GetKeyDown(KeyCode.G))
             {
@@ -399,7 +412,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     public void ChangeAutoPlayStrategy(GSNPCStrategyEnum strategy)
     {
-        if (controllType == EntityControllType.Player)
+        if (controllType == EntityType.Player)
         {
             runtimeSwitcher = playerAndAI_LogicSwitchB;
         }
@@ -495,7 +508,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             GameEntity entity = forSensor[m].GetComponentInParent<GameEntity>();
             if (wantopsite)
             {
-                if (entity != null && entity.GetControllType() != this.controllType)
+                if (entity != null && beEneymyToMe(entity))
                 {
                     range[i++] = entity;
                 }
@@ -511,27 +524,45 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         return Mathf.Min(length, i);
     }
 
+    public bool beEneymyToMe(GameEntity target)
+    {
+        if (target == null)
+            return false;
+        EntityType entityType = GetControllType();
+        if (entityType == target.GetControllType())
+            return false;
+        if (entityType == EntityType.Player)
+            return target.GetControllType() == EntityType.AI;
+        else if (entityType == EntityType.AI)
+            return target.GetControllType() != EntityType.AI;
+        else if (entityType == EntityType.PlayerSummon)
+            return target.GetControllType() == EntityType.AI;
+        return false;
+    }
+
     public int GetPursueRangeEntity(GameEntity[] range)
     {
-        //return GetRangeEntity(entityConfig.pursueSight_config, range);
         return GetRangeEntity(runtimeData.pursueSight, range);
     }
 
 
-    public void DoReleaseSkill(int selectSkillID)
+    public void DoReleaseSkill(int skillID)
     {
         if (targetEntity != null)
             this.m_Transform.LookAt(targetEntity.m_Transform.position);
 
         EntityAnimEnum s = EntityAnimEnum.Attack;
-        Skill skill = GameCore.GetRegistServices<BattleService>().GetSkillByID(selectSkillID);
+        Skill skill = GameCore.GetRegistServices<BattleService>().GetSkillByID(skillID);
         if (skill != null)
             s = skill.playAniWhenRelease;
-        this.entityVisual.PlayReleaseSkill(s);
+        this.entityVisual.PlayReleaseSkill(s);//动画
+        this.controllRemote.DoReleaseSkill(skill);//更新cd
 
+        //技能结算
         BattleService battle = GameCore.GetRegistServices<BattleService>();
-        battle.QuestSkillCalculate(selectSkillID, this.controllRemote, targetEntity.GetControllRemote());
-        this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
+        //battle.QuestSkillCalculate(selectSkillID, this.controllRemote, targetEntity.GetControllRemote());
+        battle.QuestSkillCalculate(skillID, this);
+        //this.targetEntity.SendCmd(entityID, Command.CaughtDamage, string.Empty);
     }
 
     public List<int> GetdifferentSkills(List<int> skills)
@@ -544,12 +575,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     public List<int> GetNowSkillSockets()
     {
-        return controllRemote.UpdateRuntimeData(null).activeSkillSockets;
+        return controllRemote.GetOrUpdateRuntimeData(null).activeSkillSockets;
     }
 
     public void ChangeNowSkillSockets(List<int> skills)
     {
-        controllRemote.UpdateRuntimeData(null).ChangeActiveSkillSockets(skills);
+        controllRemote.GetOrUpdateRuntimeData(null).ChangeActiveSkillSockets(skills);
     }
 
 
@@ -631,7 +662,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (controllType == EntityControllType.Player)
+        if (controllType == EntityType.Player)
         {
             if (SelectStatus == GameEntitySelectStatus.Selected)
             {
@@ -646,7 +677,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         else
         {
             GameEntity selected = GameEntityMgr.GetSelectedEntity();
-            if (selected != null && selected.controllType == EntityControllType.Player)
+            if (selected != null && selected.controllType == EntityType.Player)
             {
                 selected.AimAtTargetEntity(this);
                 this.NoticeBeAimed(selected);
@@ -1036,7 +1067,7 @@ public partial class GameEntity
             {
                 if (startIndex + 1 <= path.Count - 1)
                 {
-                    if (IsTargetEntityInAttackSight() || GetControllRemote().PTiliMove() == false)
+                    if (IsTargetEntityInAttackSight() || GetControllRemote().PTiliMove(1) == false)
                     {
                         if (entityVisual.Status == EntityAnimStatus.Run)
                             GetEntityVisual().SetAniStatus(EntityAnimStatus.Idle);

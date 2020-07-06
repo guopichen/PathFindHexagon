@@ -59,8 +59,8 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         {
             id2allEntities.Add(key, entity);
             Instance.allEntities.Add(entity);
-            EntityControllType type = entity.GetControllType();
-            if (type == EntityControllType.Player)
+            EntityType type = entity.GetControllType();
+            if (type == EntityType.Player)
             {
                 playerEntities.Add(entity);
             }
@@ -68,11 +68,11 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             if (GameCore.GetGameStatus() == GameStatus.Run)
             {
                 ActiveEntity(entity);
-                if (type == EntityControllType.AI)
+                if (type == EntityType.AI)
                 {
                     onAddNewNPCEntityDuringRun();
                 }
-                else if (type == EntityControllType.Player)
+                else if (type == EntityType.Player)
                     onAddNewPlayerEntityDuringRun();
             }
             
@@ -99,7 +99,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         int minID = 0;
         foreach (int id in allEntities.Select((x) =>
          {
-             if (x.GetControllType() != centerEntity.GetControllType() && x.BeAlive())
+             if (centerEntity.beEneymyToMe(x) && x.BeAlive())
                  return x.entityID;
              return 0;
          }))
@@ -303,10 +303,11 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         initImplement(GameCore.GetRegistServices<MapController>());
         entityConfigSet = Resources.Load<GameEntityConfigSet>("EntityConfigSet");
+        entityConfigSet.init();
 
     }
 
-    public GameEntityConfig GetConfigByZhiye(EntityActionEnum zhiye)
+    public GameEntityConfig GetConfigByZhiye(EntityZhiye zhiye)
     {
         return entityConfigSet.GetConfig(zhiye);
     }
@@ -333,7 +334,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         if (id2allEntities.TryGetValue(entityID, out GameEntity entity))
         {
-            if (entity.GetControllType() == EntityControllType.Player)
+            if (entity.GetControllType() == EntityType.Player)
                 entity.ChangeAutoPlayStrategy(strategy);
         }
     }

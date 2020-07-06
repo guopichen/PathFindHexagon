@@ -22,7 +22,7 @@ public interface GameEntityMsg
 }
 
 
-public enum EntityActionEnum
+public enum EntityZhiye
 {
     None,
     Warrior,
@@ -54,7 +54,7 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
     public GameEntityAction(GameEntity entity)
     {
         this.entity = entity;
-        if (entity.GetControllType() == EntityControllType.AI)
+        if (entity.GetControllType() != EntityType.Player)
         {
             ChangeBehaveState(AutoFightRemote);
         }
@@ -98,7 +98,7 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
 
     public virtual async void Action2Entity(GameEntity gameEntity)
     {
-        if (entity.GetControllType() == EntityControllType.Player)
+        if (entity.GetControllType() == EntityType.Player)
         {
             await entity.playerAction2Entity();
         }
@@ -174,7 +174,7 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
                 {
                     if (startIndex + 1 <= path.Count - 1)
                     {
-                        if (entity.IsTargetEntityInAttackSight() || entity.GetControllRemote().PTiliMove() == false)
+                        if (entity.IsTargetEntityInAttackSight() || entity.GetControllRemote().PTiliMove(1) == false)
                         {
                             entity.GetEntityVisual().PlayAnim(EntityAnimEnum.Idle);
                             yield break;

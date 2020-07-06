@@ -22,16 +22,16 @@ public interface ItemsCanAffectRuntimeData
 public interface RuntimeDataRemote
 {
     //void InitRuntimeData(GameEntity entity);
-    GameEntityRuntimeData UpdateRuntimeData(IDataForCalculateEntityRuntimeData forruntime);
-
+    GameEntityRuntimeData GetOrUpdateRuntimeData(IDataForCalculateEntityRuntimeData forruntime);
 }
 
 public interface GameEntityControllRemote : DamageRemote, RuntimeDataRemote
 {
     //void SendCmd(ControllMsg cmd, string arg);
-    bool PTiliMove(int cost = 1);
+    bool PTiliMove(int cost);
     void ChangeHP(int delta);
-    void ChangeTili(int delta = -1);
+    void ChangeTili(int delta);
+    void ChangeHujia(int delta);
     void CalledEverySeconds();
     void CalledEveryFrame();
     bool PReleaseSkill(int skillID);
@@ -144,7 +144,21 @@ public class GameEntityControllBase : GameEntityControllRemote
 
     public void CalledEveryFrame()
     {
+        foreach(KeyValuePair<int,float> kvp in runtimeData.skillContinueSet)
+        {
+            int key = kvp.Key;
+            float effectTime = kvp.Value;
+            if (effectTime == 0)
+                continue;
 
+            effectTime -= Time.deltaTime;
+            if(effectTime <= 0)
+            {
+                BattleService battle = GameCore.GetRegistServices<BattleService>();
+                battle.GetSkillByID(key);
+            }
+            effectTime = Mathf.Min(0, effectTime);
+        }
     }
 
     public bool PReleaseSkill(int skillID)
@@ -155,9 +169,15 @@ public class GameEntityControllBase : GameEntityControllRemote
     public void DoReleaseSkill(Skill skill)
     {
         runtimeData.cdSet[skill.skillID] -= skill.cd;
+        if (runtimeData.skillContinueSet.ContainsKey(skill.skillID))
+        {
+            runtimeData.skillContinueSet[skill.skillID] = skill.effectTime;
+        }
+        else
+            runtimeData.skillContinueSet.Add(skill.skillID, skill.effectTime);
     }
 
-    public GameEntityRuntimeData UpdateRuntimeData(IDataForCalculateEntityRuntimeData forruntime)
+    public GameEntityRuntimeData GetOrUpdateRuntimeData(IDataForCalculateEntityRuntimeData forruntime)
     {
         if (forruntime == null)
             return runtimeData;
@@ -194,13 +214,19 @@ public class GameEntityControllBase : GameEntityControllRemote
         runtimeData.selectSkillID = skillid;
         GameEntityMgr.Instance.valueChangedCenter(id, skillid, lastselected, ValueChangeType.AutoSkillChange);
     }
+
+    public void ChangeHujia(int delta)
+    {
+        runtimeData.hujia += delta;
+    }
 }
 
-public enum EntityControllType
+public enum EntityType
 {
     None,
     Player,
     AI,
+    PlayerSummon,
 }
 [System.Serializable]
 public class GameEntityRuntimeData
@@ -231,10 +257,12 @@ public class GameEntityRuntimeData
 
     public int selectSkillID = Skill.PingA;
 
+    public bool visible = true;
 
 
     public List<int> activeSkillSockets;
     public Dictionary<int, float> cdSet = new Dictionary<int, float>();
+    public Dictionary<int, float> skillContinueSet = new Dictionary<int, float>();
 
 
     public void ChangeActiveSkillSockets(List<int> newSockets)

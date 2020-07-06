@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 
-public interface GameRemote: IGameInit, IGameStart,IGameUpdate, IGameEnd
+public interface GameRemote : IGameInit, IGameStart, IGameUpdate, IGameEnd
 {
 }
 
@@ -22,7 +23,7 @@ public interface IGameStart
 
 public interface IGameUpdate
 {
-    int UpdateInterval { get; }//间隔帧数
+    float UpdateInterval { get; }//间隔帧数
     void OnUpdateGame();
 
 }
@@ -46,7 +47,7 @@ public class GameCore : MonoBehaviour
     public GameStatus coreStatus = GameStatus.None;
 
     private List<GameRemote> gameRemoteSet = new List<GameRemote>();
-    private Dictionary<IGameUpdate, int> updateTimeSet = new Dictionary<IGameUpdate, int>();
+    private Dictionary<IGameUpdate, float> updateTimeSet = new Dictionary<IGameUpdate, float>();
 
 
     private List<IGameInit> callOnCoreFirstActive = new List<IGameInit>();
@@ -59,7 +60,6 @@ public class GameCore : MonoBehaviour
         gameRemoteSet.Add(new GameEntityMgr());
         gameRemoteSet.Add(new BattleService());
 
-
         coreStatus = GameStatus.Idle;
     }
     IEnumerator Start()
@@ -68,7 +68,7 @@ public class GameCore : MonoBehaviour
         {
             remote.OnInitGame();
         }
-        foreach(IGameInit remote in callOnCoreFirstActive)
+        foreach (IGameInit remote in callOnCoreFirstActive)
         {
             remote.OnInitGame();
         }
@@ -83,7 +83,7 @@ public class GameCore : MonoBehaviour
         {
             remote.OnStartGame();
         }
-        foreach(IGameStart remote in callOnGameStart)
+        foreach (IGameStart remote in callOnGameStart)
         {
             remote.OnStartGame();
         }
@@ -112,7 +112,20 @@ public class GameCore : MonoBehaviour
             Instance.coreStatus = GameStatus.Run;
     }
 
-    internal static void SpawnNPC(EntityActionEnum zhiye)
+    public static void SpawnBaobao(EntityZhiye zhiye)
+    {
+        string prefabname = "GameEntity";
+        GameObject prefab = Resources.Load<GameObject>(prefabname);
+        GameObject clone = GameObject.Instantiate(prefab);
+        clone.name = "baobao";
+        GameEntity entity = clone.GetComponent<GameEntity>();
+        entity.SetEntityZhiyeConfig(zhiye);
+        entity.SetControllType(EntityType.PlayerSummon);
+        GetRegistServices<GameEntityMgr>().RegEntity(entity);
+    }
+
+
+    internal static void SpawnNPC(EntityZhiye zhiye)
     {
         string prefabname = "GameEntity";
         GameObject prefab = Resources.Load<GameObject>(prefabname);
@@ -120,11 +133,11 @@ public class GameCore : MonoBehaviour
         clone.name = "npc";
         GameEntity entity = clone.GetComponent<GameEntity>();
         entity.SetEntityZhiyeConfig(zhiye);
-        entity.SetControllType(EntityControllType.AI);
+        entity.SetControllType(EntityType.AI);
         GetRegistServices<GameEntityMgr>().RegEntity(entity);
     }
 
-    internal static void SpawnPlayer(EntityActionEnum zhiye)
+    internal static void SpawnPlayer(EntityZhiye zhiye)
     {
         GameEntityMgr entityMgr = GetRegistServices<GameEntityMgr>();
         int cnt = entityMgr.GetAllPlayers().Count;
@@ -138,11 +151,12 @@ public class GameCore : MonoBehaviour
         GameObject clone = GameObject.Instantiate(prefab);
         GameEntity entity = clone.GetComponent<GameEntity>();
         entity.SetEntityZhiyeConfig(zhiye);
-        entity.SetControllType(EntityControllType.Player);
+        entity.SetControllType(EntityType.Player);
         entityMgr.RegEntity(clone.GetComponent<GameEntity>());
 
     }
 
+    //这里本应该改为纯interace的写法，为了省时间。略过，demo阶段可以接受
     private Dictionary<string, object> servicesUnknownSet = new Dictionary<string, object>();
     public static void RegistOtherServices<T>(T service) where T : class
     {
@@ -179,20 +193,22 @@ public class GameCore : MonoBehaviour
             {
                 updateTimeSet.Add(remote, 0);
             }
-            if (--updateTimeSet[remote] <= 0)
+            updateTimeSet[remote] -= Time.deltaTime;
+            if (updateTimeSet[remote] <= 0)
             {
                 remote.OnUpdateGame();
                 updateTimeSet[remote] = remote.UpdateInterval;
             }
         }
 
-        foreach(IGameUpdate remote in callOnCoreUpdate)
+        foreach (IGameUpdate remote in callOnCoreUpdate)
         {
             if (!updateTimeSet.ContainsKey(remote))
             {
                 updateTimeSet.Add(remote, 0);
             }
-            if (--updateTimeSet[remote] <= 0)
+            updateTimeSet[remote] -= Time.deltaTime;
+            if (updateTimeSet[remote] <= 0)
             {
                 remote.OnUpdateGame();
                 updateTimeSet[remote] = remote.UpdateInterval;
@@ -282,7 +298,7 @@ public class GameServiceBase : GameRemote
         serviceGo = GameCore.RequestServiceGo(this);
     }
 
-    public virtual int UpdateInterval => 1;
+    public virtual float UpdateInterval => 1 / 60.0f;
 
     public void OnEndGame()
     {

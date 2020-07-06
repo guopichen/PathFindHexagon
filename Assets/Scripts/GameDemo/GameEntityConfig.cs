@@ -30,6 +30,6 @@ public class GameEntityConfig:ScriptableObject
     public float cd2_config;
     public float cd3_config;
 
-    public EntityActionEnum zhiye;
+    public EntityZhiye zhiye;
 }
 

@@ -30,6 +30,12 @@ public static class GameTimer
     #endregion
 
     #region 基于GameCore的情况,时间流逝需要考虑到GameCore的状态，同时一定要在GameCore工作之后使用
+    public static void DelayJobBaseOnCore(float seconds,Action action)
+    {
+        AwaitSecondsBaseOnCore(seconds, action).ForgetAwait();
+    }
+
+
     public static async Task AwaitSecondsBaseOnCore(float seconds,Action action)
     {
         while (seconds > 0)
@@ -40,8 +46,17 @@ public static class GameTimer
         action();
     }
 
+    public static void LoopJobBaseOnCore(float seconds,Action action)
+    {
+        AwaitLoopSecondsBaseOnCore(seconds, action).ForgetAwait();
+    }
+
+
     public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Action action)
     {
+        if (seconds == 0)
+            return;
+
         float origin = seconds;
         while (seconds > 0)
         {
