@@ -10,8 +10,8 @@ using UnityEngine;
 public interface GameEntityMgrRemote
 {
     List<GameEntity> GetAllPlayers();
-    void ChangeAllPlayerEntityStrategy(GSNPCStrategyEnum strategy);
-    void ChangePlayerEntityStrategy(int entityID, GSNPCStrategyEnum strategy);
+    void ChangeAllPlayerEntityStrategy(GSNPCStrategy strategy);
+    void ChangePlayerEntityStrategy(int entityID, GSNPCStrategy strategy);
 }
 
 public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
@@ -198,7 +198,10 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         if (SelectedEntity != null)
         {
             SelectedEntity.AimAtTargetEntity(null);
-            SelectedEntity.PredictPathWillChange();
+            if(SelectedEntity.GetActionRemote().AIStrategy == GSNPCStrategy.Empty)
+            {
+                SelectedEntity.PredictPathWillChange();
+            }
         }
     }
 
@@ -322,7 +325,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         return allEntities;
     }
 
-    public void ChangeAllPlayerEntityStrategy(GSNPCStrategyEnum strategy)
+    public void ChangeAllPlayerEntityStrategy(GSNPCStrategy strategy)
     {
         foreach (GameEntity entity in playerEntities)
         {
@@ -330,7 +333,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         }
     }
 
-    public void ChangePlayerEntityStrategy(int entityID, GSNPCStrategyEnum strategy)
+    public void ChangePlayerEntityStrategy(int entityID, GSNPCStrategy strategy)
     {
         if (id2allEntities.TryGetValue(entityID, out GameEntity entity))
         {

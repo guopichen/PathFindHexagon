@@ -61,6 +61,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     GameEntityAction actionRemote;
 
 
+    public GameEntityActionRemote GetActionRemote()
+    {
+        return actionRemote;
+    }
+
+
     List<Skill> entitySkillSet;
     public void SetControllType(EntityType entityControllStatus)
     {
@@ -401,7 +407,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             }
             else if (Input.GetKeyDown(KeyCode.P))
             {
-                ChangeAutoPlayStrategy(GSNPCStrategyEnum.AutoFight);
+                ChangeAutoPlayStrategy(GSNPCStrategy.AutoFight);
             }
             else if (Input.GetKeyDown(KeyCode.O))
             {
@@ -410,7 +416,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         }
     }
 
-    public void ChangeAutoPlayStrategy(GSNPCStrategyEnum strategy)
+    public void ChangeAutoPlayStrategy(GSNPCStrategy strategy)
     {
         if (controllType == EntityType.Player)
         {
@@ -421,7 +427,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     public void Back2Manual()
     {
-        ChangeAutoPlayStrategy(GSNPCStrategyEnum.Empty);
+        ChangeAutoPlayStrategy(GSNPCStrategy.Empty);
         runtimeSwitcher = player_LogicSwitchA;
     }
 

@@ -37,15 +37,15 @@ public class SelectedRoleArea : MonoBehaviour
         button2itemid.Add(s_item2.GetInstanceID(), 0);
         st_Daiji.onClick.AddListener(() =>
         {
-            doStrategy(GSNPCStrategyEnum.Daiji);
+            doStrategy(GSNPCStrategy.Daiji);
         });
         st_Jingjie.onClick.AddListener(() =>
         {
-            doStrategy(GSNPCStrategyEnum.Jingjie);
+            doStrategy(GSNPCStrategy.Jingjie);
         });
         st_Autofight.onClick.AddListener(() =>
         {
-            doStrategy(GSNPCStrategyEnum.AutoFight);
+            doStrategy(GSNPCStrategy.AutoFight);
         });
 
         st_BackToManual.onClick.AddListener(() =>
@@ -90,7 +90,7 @@ public class SelectedRoleArea : MonoBehaviour
 
 
 
-    private void doStrategy(GSNPCStrategyEnum strategy)
+    private void doStrategy(GSNPCStrategy strategy)
     {
         GameEntityMgr.GetSelectedEntity()?.ChangeAutoPlayStrategy(strategy);
     }

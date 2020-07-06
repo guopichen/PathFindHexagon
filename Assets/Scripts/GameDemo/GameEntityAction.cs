@@ -13,6 +13,7 @@ public interface GameEntityActionRemote
     void Action2Entity(GameEntity targetEntity);
     void Action2Point(int skillID, Vector2Int targetPoint);
     IEnumerator AutoUpdate();
+    GSNPCStrategy AIStrategy { get; }
 
 }
 
@@ -30,7 +31,7 @@ public enum EntityZhiye
     Mushi,
 }
 
-public enum GSNPCStrategyEnum
+public enum GSNPCStrategy
 {
     Empty,
     Daiji,
@@ -51,6 +52,10 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
     private GSNPCStateRemote JingjieRemote = new Jingjie();
     private GSNPCStateRemote AutoFightRemote = new AutoFight();
 
+
+    private GSNPCStrategy currentStrategy = GSNPCStrategy.Empty;
+    public GSNPCStrategy AIStrategy => currentStrategy;
+
     public GameEntityAction(GameEntity entity)
     {
         this.entity = entity;
@@ -60,20 +65,21 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
         }
     }
 
-    public void ChangeStrategy(GSNPCStrategyEnum strategy)
+    public void ChangeStrategy(GSNPCStrategy strategy)
     {
+        currentStrategy = strategy;
         switch (strategy)
         {
-            case GSNPCStrategyEnum.AutoFight:
+            case GSNPCStrategy.AutoFight:
                 ChangeBehaveState(AutoFightRemote);
                 break;
-            case GSNPCStrategyEnum.Daiji:
+            case GSNPCStrategy.Daiji:
                 ChangeBehaveState(DaijiRemote);
                 break;
-            case GSNPCStrategyEnum.Jingjie:
+            case GSNPCStrategy.Jingjie:
                 ChangeBehaveState(JingjieRemote);
                 break;
-            case GSNPCStrategyEnum.Empty:
+            case GSNPCStrategy.Empty:
             default:
                 mutexState1 = state_empty;
                 break;
