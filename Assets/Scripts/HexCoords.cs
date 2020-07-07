@@ -17,6 +17,7 @@ namespace PathFind
 
         public static Vector3 GetHexVisualCoords(Vector2Int point, Vector2Int mapSize)
         {
+            return Coords.GetVisualPosition(point);
 
 #if !DEFAULT
             var shift = point.y % 2 == 0 ? 0 : 0.5f;
@@ -51,19 +52,55 @@ namespace PathFind
                 shift = 0.5f;
             }
             x = worldSpace.x - shift + ((float)mapSize.x / 2) + 0.25f;
-            
+
             int iX = Mathf.CeilToInt(x) - 1;
             return new Vector2Int(iX, iY);
         }
 
-
-        public static bool GetHexCellByRadius(Vector2Int point, int R, ref List<Vector2Int> container)
+        public static void GetHexCellByRadius(Vector2Int point, int R, ref List<Vector2Int> container)
         {
+            for (int i = 0; i < 10000; i++)
+            {
+                Vector2Int v = new Vector2Int(i, i);
+                v.x += 1;
+                List<Vector2Int> vvvv = v.GetCellNeighbor();
+            }
+            if (container == null || R < 0 || true)
+                return;
+
+            int startLength = 0;
+            container.Add(point);
+            List<Vector2Int> currentDepth = new List<Vector2Int>();
+            currentDepth.Add(point);
+            List<Vector2Int> nextDepth = new List<Vector2Int>();
+            while (startLength < R)
+            {
+                foreach (Vector2Int v in currentDepth)
+                {
+                    List<Vector2Int> next = v.GetCellNeighbor();
+                    foreach (Vector2Int nextV in next)
+                    {
+                        if (!container.Contains(nextV))
+                        {
+                            container.AddRange(next);
+                            nextDepth.AddRange(v.GetCellNeighbor());
+                        }
+                    }
+                }
+                nextDepth.Distinct<Vector2Int>();
+                currentDepth = nextDepth;
+                nextDepth = new List<Vector2Int>();
+                startLength++;
+            }
+            container.Distinct<Vector2Int>();
 
 
+        }
+
+        public static bool GetHexCellByRadius(Vector2Int point, int R, ref List<Vector2Int> container, ref List<Vector2Int> openList)
+        {
             if (container == null || R < 0)
                 return false;
-
 
             switch (R)
             {
@@ -76,10 +113,22 @@ namespace PathFind
                     //container = container.Distinct<Vector2Int>().ToList<Vector2Int>();
                     return true;
                 default:
+                    if (openList == null)
+                        openList = new List<Vector2Int>();
+                    if (openList.Contains(point))
+                    {
+                        if (!container.Contains(point))
+                            container.Add(point);
+                        return true;
+                    }
                     List<Vector2Int> neighbour = point.GetCellNeighbor();
                     foreach (Vector2Int nearP in neighbour)
                     {
-                        GetHexCellByRadius(nearP, R - 1, ref container);
+                        if (!openList.Contains(nearP))
+                        {
+                            openList.Add(nearP);
+                        }
+                        GetHexCellByRadius(nearP, R - 1, ref container, ref openList);
                     }
                     return true;
             }

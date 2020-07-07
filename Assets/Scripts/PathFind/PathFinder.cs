@@ -31,36 +31,43 @@ namespace PathFind
                 closed.Add(minOpened);
                 opened.Remove(minOpened);
 
-                if (minOpened.Point.y % 2 != 0)
-                {
-                    var n1 = new Vector2Int(minOpened.Point.x, minOpened.Point.y - 1);
-                    var n2 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y - 1);
-                    var n3 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y);
-                    var n4 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y);
-                    var n5 = new Vector2Int(minOpened.Point.x, minOpened.Point.y + 1);
-                    var n6 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y + 1);
-                    moveList.Add(n1);
-                    moveList.Add(n2);
-                    moveList.Add(n3);
-                    moveList.Add(n4);
-                    moveList.Add(n5);
-                    moveList.Add(n6);
-                }
-                else
-                {
-                    var n1 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y - 1);
-                    var n2 = new Vector2Int(minOpened.Point.x, minOpened.Point.y - 1);
-                    var n3 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y);
-                    var n4 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y);
-                    var n5 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y + 1);
-                    var n6 = new Vector2Int(minOpened.Point.x, minOpened.Point.y + 1);
-                    moveList.Add(n1);
-                    moveList.Add(n2);
-                    moveList.Add(n3);
-                    moveList.Add(n4);
-                    moveList.Add(n5);
-                    moveList.Add(n6);
-                }
+                moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 0));
+                moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 1));
+                moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 2));
+                moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 3));
+                moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 4));
+                moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 5));
+
+                //if (minOpened.Point.y % 2 != 0)
+                //{
+                //    var n1 = new Vector2Int(minOpened.Point.x, minOpened.Point.y - 1);
+                //    var n2 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y - 1);
+                //    var n3 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y);
+                //    var n4 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y);
+                //    var n5 = new Vector2Int(minOpened.Point.x, minOpened.Point.y + 1);
+                //    var n6 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y + 1);
+                //    moveList.Add(n1);
+                //    moveList.Add(n2);
+                //    moveList.Add(n3);
+                //    moveList.Add(n4);
+                //    moveList.Add(n5);
+                //    moveList.Add(n6);
+                //}
+                //else
+                //{
+                //    var n1 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y - 1);
+                //    var n2 = new Vector2Int(minOpened.Point.x, minOpened.Point.y - 1);
+                //    var n3 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y);
+                //    var n4 = new Vector2Int(minOpened.Point.x + 1, minOpened.Point.y);
+                //    var n5 = new Vector2Int(minOpened.Point.x - 1, minOpened.Point.y + 1);
+                //    var n6 = new Vector2Int(minOpened.Point.x, minOpened.Point.y + 1);
+                //    moveList.Add(n1);
+                //    moveList.Add(n2);
+                //    moveList.Add(n3);
+                //    moveList.Add(n4);
+                //    moveList.Add(n5);
+                //    moveList.Add(n6);
+                //}
 
                 for (int i = 0; i < moveList.Count; i++)
                 {
@@ -73,7 +80,7 @@ namespace PathFind
                             var isOpened = opened.Contains(element);
                             var addDistance = 10;
                             var distance = minOpened.Distance + addDistance;
-                            
+
                             if (isOpened)
                             {
                                 if (element.Distance > minOpened.Distance + addDistance)
@@ -91,7 +98,8 @@ namespace PathFind
 
                             var HeurX = element.Point.x > cellEnd.Point.x ? element.Point.x - cellEnd.Point.x : cellEnd.Point.x - element.Point.x;
                             var HeurY = element.Point.y > cellEnd.Point.y ? element.Point.y - cellEnd.Point.y : cellEnd.Point.y - element.Point.y;
-                            element.SetHeuristic((int)Math.Sqrt(HeurX * HeurX + HeurY * HeurY) * addDistance);
+                            //element.SetHeuristic((int)Math.Sqrt(HeurX * HeurX + HeurY * HeurY) * addDistance);
+                            element.SetHeuristic(Neighbors.oddr_distance(element.Point, cellEnd.Point) * addDistance);
 
                             if (element == cellEnd)
                             {
@@ -145,7 +153,7 @@ public static class ExtendFunc
 {
     public static List<Vector2Int> GetCellNeighbor(this Vector2Int minOpened)
     {
-        List<Vector2Int> result = new List<Vector2Int>();
+        List<Vector2Int> result = new List<Vector2Int>(8);
         if (minOpened.y % 2 != 0)
         {
             var n1 = new Vector2Int(minOpened.x, minOpened.y - 1);
@@ -180,11 +188,11 @@ public static class ExtendFunc
         return result;
     }
 
-    public static List<Vector2Int> GetCellRingSides(this Vector2Int point,int R)
+    public static List<Vector2Int> GetCellRingSides(this Vector2Int point, int R)
     {
         List<Vector2Int> result = new List<Vector2Int>();
 
-        if ( point.y % 2 !=0)
+        if (point.y % 2 != 0)
         {
             var left_down = new Vector2Int(point.x - R / 2, point.y - R);
             var right_up = new Vector2Int(point.x + (R + 1) / 2, point.y + R);
@@ -200,7 +208,7 @@ public static class ExtendFunc
             result.Add(left_down);
             result.Add(left_up);
 
-            
+
         }
         else
         {
@@ -219,7 +227,7 @@ public static class ExtendFunc
             result.Add(left_up);
 
 
-            
+
         }
 
 

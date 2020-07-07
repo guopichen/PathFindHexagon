@@ -4,8 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+
 public static class Coords
 {
+    public enum OffSetCoordsType
+    {
+        even_r,
+        odd_r,
+        even_q,
+        odd_q,
+    }
+
+    public static OffSetCoordsType offsettype = OffSetCoordsType.odd_r;
+
     static float r = Mathf.Sqrt(3) / 3.0f;//指六边形center到各顶点的距离
 
     //采用pointy top
@@ -15,6 +26,46 @@ public static class Coords
     public static Vector2 GetSpacing(Vector2Int point)
     {
         return new Vector2(w * point.x, -h * 0.75f * point.y);
+    }
+
+    public static Vector2 GetOffsetCoord_even_r(Vector2Int point)
+    {
+        if (point.y % 2 == 0)
+        {
+            return new Vector2(0.5f * w, 0);
+        }
+        else
+            return Vector2.zero;
+    }
+
+
+    public static Vector3 GetVisualPosition(Vector2Int point)
+    {
+        float x = 0, y =0 , z= 0;
+        Vector2 spacing = GetSpacing(point);
+        if(offsettype == OffSetCoordsType.odd_r)
+        {
+            Vector2 coord = GetOffsetCoord_odd_r(point);
+            x = spacing.x + coord.y;
+            z = spacing.y + coord.y;
+        }
+        else if(offsettype == OffSetCoordsType.even_r)
+        {
+            Vector2 coord = GetOffsetCoord_even_r(point);
+            x = spacing.x + coord.y;
+            z = spacing.y + coord.y;
+        }
+
+        return new Vector3(x, y, z);
+    }
+
+    public static Vector2 GetOffsetCoord_odd_r(Vector2Int point)
+    {
+        if (point.y % 2 == 0)
+        {
+            return Vector2.zero;
+        }
+        return new Vector2(0.5f * w, 0);
     }
 
     static Vector3Int even_r_to_cube(Vector2Int point)
@@ -76,9 +127,7 @@ public static class Neighbors
         leftdown = 4,
         rightdown = 5,
     }
-    public static Vector3Int cube_neighbor(Vector3Int currentCube, HexCellDirection direction)
-    {
-        List<Vector3Int> directions = new List<Vector3Int>()
+    static List<Vector3Int> cube_dir = new List<Vector3Int>()
             {
                 new Vector3Int(1,-1,0),
                 new Vector3Int(1,0,-1),
@@ -87,13 +136,13 @@ public static class Neighbors
                 new Vector3Int(-1,0,1),
                 new Vector3Int(0,-1,1),
             };
-        return currentCube + directions[(int)direction];
+    public static Vector3Int cube_neighbor(Vector3Int currentCube, HexCellDirection direction)
+    {
+       
+        return currentCube + cube_dir[(int)direction];
 
     }
-
-    public static Vector2Int axial_neighbor(Vector2Int currentAxial, HexCellDirection direction)
-    {
-        List<Vector2Int> directions = new List<Vector2Int>()
+    static List<Vector2Int> axial_dir = new List<Vector2Int>()
             {
                 new Vector2Int(1, 0),
                 new Vector2Int(1, -1),
@@ -102,12 +151,12 @@ public static class Neighbors
                 new Vector2Int(-1, 1),
                 new Vector2Int(0, 1)
             };
-        return currentAxial + directions[(int)direction];
-    }
-
-    public static Vector2Int oddr_neighbor(Vector2Int point, HexCellDirection direction)
+    public static Vector2Int axial_neighbor(Vector2Int currentAxial, HexCellDirection direction)
     {
-        List<List<Vector2Int>> directions = new List<List<Vector2Int>>()
+        
+        return currentAxial + axial_dir[(int)direction];
+    }
+    static List<List<Vector2Int>> oddr_dir = new List<List<Vector2Int>>()
             {
                 new List<Vector2Int>{
                     new Vector2Int(1,0),
@@ -126,8 +175,20 @@ public static class Neighbors
                     new Vector2Int(+1, +1)
                 },
             };
+    public static Vector2Int oddr_neighbor(Vector2Int point, HexCellDirection direction)
+    {
         int parity = point.y & 1;
-        return directions[parity][(int)direction];
+        return oddr_dir[parity][(int)direction] + point;
+    }
+
+    public static int oddr_distance(Vector2Int from,Vector2Int to)
+    {
+        return Cube_distance(Coords.odd_r_to_cube(from), Coords.odd_r_to_cube(to));
+    }
+
+    public static int Cube_distance(Vector3Int from,Vector3Int to)
+    {
+        return Mathf.Max(Mathf.Abs(from.x - to.x), Mathf.Abs(from.y - from.y), Mathf.Abs(from.z - from.z));
     }
 
 
@@ -163,7 +224,7 @@ public class CustomHex : MonoBehaviour
 
     private void Awake()
     {
-       
+
     }
 
 
@@ -180,7 +241,7 @@ public class CustomHex : MonoBehaviour
 
                 Vector2Int point = new Vector2Int(col, row);
                 Vector2 spacing = Coords.GetSpacing(point);
-                Vector2 offsetCoord = GetOffsetCoord_odd_r(point);
+                Vector2 offsetCoord = Coords.GetOffsetCoord_odd_r(point);
                 go.name = point.ToString() + ":" + Coords.odd_r_to_cube(point).ToString() + ":" + Coords.cube_to_odd_r(Coords.odd_r_to_cube(point)).ToString();
                 cellViewSet.Add(point, go.AddComponent<CellView>());
                 pos.x = spacing.x + offsetCoord.x;
@@ -221,24 +282,7 @@ public class CustomHex : MonoBehaviour
         }
     }
 
-    Vector2 GetOffsetCoord_even_r(Vector2Int point)
-    {
-        if (point.y % 2 == 0)
-        {
-            return new Vector2(0.5f * w, 0);
-        }
-        else
-            return Vector2.zero;
-    }
 
-    Vector2 GetOffsetCoord_odd_r(Vector2Int point)
-    {
-        if (point.y % 2 == 0)
-        {
-            return Vector2.zero;
-        }
-        return new Vector2(0.5f * w, 0);
-    }
 
 
 

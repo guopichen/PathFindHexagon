@@ -100,7 +100,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         mapController = GameCore.GetRegistServices<MapController>();
         currentCell = mapController.GetRandomCell().Point;
         var mapSize = mapController.GetMapSize();
-        this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
+        //this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
+        this.transform.position = Coords.GetVisualPosition(currentCell);
 
         //设定职业
         applyZhiye();
