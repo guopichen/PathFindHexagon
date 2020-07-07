@@ -44,7 +44,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         onAddNewNPCEntityDuringRun += action;
     }
-   
+
 
     public void RegEntity(GameEntity entity)
     {
@@ -75,7 +75,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
                 else if (type == EntityType.Player)
                     onAddNewPlayerEntityDuringRun();
             }
-            
+
             entityID2ValuechangedDelegates.Add(key, new OnRuntimeValueChanged((changeType) => { }));
 
         }
@@ -133,7 +133,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
 
     }
 
-   
+
 
     //只要数据变动，若要更细致到hp的话，在valuechangedcenter处理
     private Dictionary<int, OnRuntimeValueChanged> entityID2ValuechangedDelegates = new Dictionary<int, OnRuntimeValueChanged>();
@@ -141,7 +141,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     public OnRuntimeValueChanged onSelectedEntityValueChange = delegate { };
     public void AddEntityRuntimeValueChangedListenerByEntityID(int entityid, OnRuntimeValueChanged yours)
     {
-        if(entityID2ValuechangedDelegates.ContainsKey(entityid))
+        if (entityID2ValuechangedDelegates.ContainsKey(entityid))
         {
             OnRuntimeValueChanged onEntityRuntimeChanged = entityID2ValuechangedDelegates[entityid];
             onEntityRuntimeChanged += yours;
@@ -151,7 +151,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
 
     public void AddEntityRuntimeValueChangedListenerByIndex(int indexOfTeam, OnRuntimeValueChanged yours)
     {
-        if(allEntities.Count > indexOfTeam && indexOfTeam >= 0)
+        if (allEntities.Count > indexOfTeam && indexOfTeam >= 0)
         {
             GameEntity entity = allEntities[indexOfTeam];
             AddEntityRuntimeValueChangedListenerByEntityID(entity.entityID, yours);
@@ -180,7 +180,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     public void valueChangedCenter(int id, int valueAfaterChange, int delta, ValueChangeType valueType)
     {
         entityID2ValuechangedDelegates[id]?.Invoke(valueType);
-        if(selectedEntity != null && id == selectedEntity.entityID)
+        if (selectedEntity != null && id == selectedEntity.entityID)
         {
             onSelectedEntityValueChange(valueType);
         }
@@ -190,7 +190,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         map.OnPathFind += Instance.OnPathFind;
         map.OnEndCellSelect += Instance.OnEndCellSelect;
-        //map.OnStartCellSelect += instance.DrawRingCell;
+        //map.OnStartCellSelect += Instance.DrawRingCell;
     }
 
     private void OnEndCellSelect(ICell obj)
@@ -198,17 +198,19 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         if (SelectedEntity != null)
         {
             SelectedEntity.AimAtTargetEntity(null);
-            if(SelectedEntity.GetActionRemote().AIStrategy == GSNPCStrategy.Empty)
+            if (SelectedEntity.GetActionRemote().AIStrategy == GSNPCStrategy.Empty)
             {
                 SelectedEntity.PredictPathWillChange();
             }
         }
     }
 
-    private void DrawRingCell(ICell centerCell)
+    private void DrawRingCell(Vector2Int Point)
     {
         List<Vector2Int> vector2Ints = new List<Vector2Int>();
-        if (HexCoords.GetHexCellByRadius(centerCell.Point, 3, ref vector2Ints))
+        List<Vector2Int> openList = new List<Vector2Int>();
+        HexCoords.GetHexCellByRadius(Point, GetSelectedEntity().GetControllRemote().GetOrUpdateRuntimeData(null).eyeSight, ref vector2Ints);
+        //if (HexCoords.GetHexCellByRadius(Point, 3, ref vector2Ints, ref openList))
         {
             foreach (Vector2Int v in vector2Ints)
             {
@@ -261,7 +263,6 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         if (Instance == null)
             return;
         Instance.SelectedEntity = gameEntity;
-
     }
 
     public static GameEntity GetSelectedEntity()
@@ -271,7 +272,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
 
     public static bool IsEntitySelected(int entityID)
     {
-        return Instance?.SelectedEntity != null && Instance.SelectedEntity.entityID == entityID; 
+        return Instance?.SelectedEntity != null && Instance.SelectedEntity.entityID == entityID;
     }
 
 

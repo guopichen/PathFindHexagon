@@ -170,7 +170,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
                 actionRemote = new WarriorEntityAction(this);
                 break;
             case EntityZhiye.Magical:
-                actionRemote = new WarriorEntityAction(this);
+                actionRemote = new FashiEntityAction(this);
                 break;
             case EntityZhiye.Mushi:
                 actionRemote = new MushiEntityAction(this);
@@ -683,7 +683,8 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         else
         {
             GameEntity selected = GameEntityMgr.GetSelectedEntity();
-            if (selected != null && selected.controllType == EntityType.Player)
+            if (beEneymyToMe(selected))
+                //selected != null && selected.controllType == EntityType.Player)
             {
                 selected.AimAtTargetEntity(this);
                 this.NoticeBeAimed(selected);
@@ -730,6 +731,8 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     private void setRange(int R, int useType)
     {
+
+
         int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor);
         rangeSightArea.Clear();
         if (useType == ForEye)
