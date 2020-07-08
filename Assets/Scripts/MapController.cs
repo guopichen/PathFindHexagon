@@ -86,9 +86,7 @@ namespace PathFind
 
                 var prefabItem = m_prefabs.GetRandomPrefab(!cell.IsWall);
                 //var position = HexCoords.GetHexVisualCoords(point, mapSize);
-                Vector2 spacing = Coords.GetSpacing(point);
-                Vector2 coord = Coords.GetOffsetCoord_odd_r(point);
-                Vector3 position = new Vector3(spacing.x + coord.x, 0, spacing.y + coord.y);
+                Vector3 position = Coords.PointToVisualPosition(point);
                 var go = Instantiate(prefabItem.Prefab, position, Quaternion.identity);
                 go.transform.SetParent(transform);
                 go.name += cell.Col + ":" + cell.Row;

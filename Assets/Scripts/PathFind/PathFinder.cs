@@ -96,10 +96,10 @@ namespace PathFind
                                 element.SetParent(minOpened);
                             }
 
-                            var HeurX = element.Point.x > cellEnd.Point.x ? element.Point.x - cellEnd.Point.x : cellEnd.Point.x - element.Point.x;
-                            var HeurY = element.Point.y > cellEnd.Point.y ? element.Point.y - cellEnd.Point.y : cellEnd.Point.y - element.Point.y;
-                            //element.SetHeuristic((int)Math.Sqrt(HeurX * HeurX + HeurY * HeurY) * addDistance);
-                            element.SetHeuristic(Neighbors.oddr_distance(element.Point, cellEnd.Point) * addDistance);
+                            //var HeurX = element.Point.x > cellEnd.Point.x ? element.Point.x - cellEnd.Point.x : cellEnd.Point.x - element.Point.x;
+                            //var HeurY = element.Point.y > cellEnd.Point.y ? element.Point.y - cellEnd.Point.y : cellEnd.Point.y - element.Point.y;
+                            //element.SetHeuristic((int)Math.Sqrt(HeurX * HeurX + HeurY * HeurY) * addDistance);//简单的勾股定理估算
+                            element.SetHeuristic(Distance.oddr_distance(element.Point, cellEnd.Point) * addDistance);//基于6边形tile的距离特性估算
 
                             if (element == cellEnd)
                             {

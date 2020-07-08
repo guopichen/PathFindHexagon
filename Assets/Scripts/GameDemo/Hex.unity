@@ -310,6 +310,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 100000, guid: 02d9904536754e64b94b504b7e0ead5f, type: 3}
-  mapSize: {x: 20, y: 20}
+  mapSize: {x: 7, y: 7}
   range: 1
   centerPoint: {x: 0, y: 0}
+  centerPoint2: {x: 0, y: 0}
+  range2: 1

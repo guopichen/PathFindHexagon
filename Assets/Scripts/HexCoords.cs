@@ -17,7 +17,7 @@ namespace PathFind
 
         public static Vector3 GetHexVisualCoords(Vector2Int point, Vector2Int mapSize)
         {
-            return Coords.GetVisualPosition(point);
+            return Coords.PointToVisualPosition(point);
 
 #if !DEFAULT
             var shift = point.y % 2 == 0 ? 0 : 0.5f;

@@ -101,7 +101,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         currentCell = mapController.GetRandomCell().Point;
         var mapSize = mapController.GetMapSize();
         //this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
-        this.transform.position = Coords.GetVisualPosition(currentCell);
+        this.transform.position = Coords.PointToVisualPosition(currentCell);
 
         //设定职业
         applyZhiye();
@@ -713,7 +713,6 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     private void UpdateCurrentEyeSight()
     {
-        //setRange(entityConfig.eyeSight_config, ForEye);
         setRange(runtimeData.eyeSight, ForEye);
 
         foreach (var kvp in CellSelector.allowClickSet)
@@ -732,8 +731,6 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     private void setRange(int R, int useType)
     {
-
-
         int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor);
         rangeSightArea.Clear();
         if (useType == ForEye)

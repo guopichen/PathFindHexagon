@@ -205,6 +205,38 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         }
     }
 
+    private void drawline(Vector2Int dest)
+    {
+        List<Vector3Int> lines = DrawCoordsLine.GetCubeLine(Coords.odd_r_to_cube(SelectedEntity.CurrentPoint), Coords.odd_r_to_cube(dest));
+
+        foreach (Vector3Int cube in lines)
+        {
+            Vector2Int point = Coords.cube_to_odd_r(cube);
+            CellView cellview = GameCore.GetRegistServices<MapController>().GetCellView(point);
+            if (cellview != null)
+            {
+                Vector3 v = cellview.transform.position;
+                v.y = 10;
+                cellview.transform.position = v;
+            }
+
+        }
+        GameTimer.AwaitSeconds(3, () => {
+            foreach (Vector3Int cube in lines)
+            {
+                Vector2Int point = Coords.cube_to_odd_r(cube);
+                CellView cellview = GameCore.GetRegistServices<MapController>().GetCellView(point);
+                if (cellview != null)
+                {
+                    Vector3 v = cellview.transform.position;
+                    v.y = 0;
+                    cellview.transform.position = v;
+                }
+
+            }
+        }).ForgetAwait();
+    }
+
     private void DrawRingCell(Vector2Int Point)
     {
         List<Vector2Int> vector2Ints = new List<Vector2Int>();
