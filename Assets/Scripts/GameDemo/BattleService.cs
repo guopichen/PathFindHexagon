@@ -164,7 +164,7 @@ public class BattleService : GameServiceBase, BattleServiceRemote
 
     private class damageResult
     {
-        public DamageTypeEnum type;
+        //public DamageTypeEnum type;
         public int finalDamage;
     }
 

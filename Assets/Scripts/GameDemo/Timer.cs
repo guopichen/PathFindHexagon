@@ -112,11 +112,13 @@ public static class TaskExpand
 
     private static async void handleException(Task task)
     {
+        await task;
         //do nothing
         if(task.Exception != null)
         {
             HDebug.Log(task.Exception);
         }
+
     }
 }
 

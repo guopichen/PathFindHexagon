@@ -61,7 +61,7 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
         this.entity = entity;
         if (entity.GetControllType() != EntityType.Player)
         {
-            //ChangeBehaveState(AutoFightRemote);
+            ChangeBehaveState(AutoFightRemote);
         }
     }
 

@@ -55,6 +55,7 @@ public class GSNPCStateBase : GSNPCStateRemote
 
     public async Task ExecuteActionAsync()
     {
+        await new WaitForEndOfFrame();
     }
 
     public void SendCmd(int fromID, Command msg, string arg)

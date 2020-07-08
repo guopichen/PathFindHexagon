@@ -135,7 +135,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             runtimeSwitcher = playerAndAI_LogicSwitchB;
             StartCoroutine(updateContainer());
         }
-        else if(controllType == EntityType.PlayerSummon)
+        else if (controllType == EntityType.PlayerSummon)
         {
             entityVisual.ChangeHPColor(Color.yellow);
             AIEntitiyControll ai = new AIEntitiyControll();
@@ -181,7 +181,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
                 actionRemote = new GameEntityAction(this);
                 break;
         }
-        
+
     }
 
     public void SetEntityZhiyeConfig(EntityZhiye zhiye)
@@ -481,32 +481,35 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (gameEntity == null)
             return false;
 
-        //if (entityConfig.attackSight_config == 1)
         if (runtimeData.attackSight == 1)
-            return CurrentPoint.GetCellNeighbor().Contains(gameEntity.CurrentPoint);
+        {
+            return Neighbors.IsPointANeighborB(CurrentPoint, gameEntity.CurrentPoint);
+        }
         else
-            //return beInRange(entityConfig.attackSight_config, gameEntity.CurrentPoint, ForAttack);
             return beInRange(runtimeData.attackSight, gameEntity.CurrentPoint, ForAttack);
 
     }
 
 
 
-    static Collider[] forSensor = new Collider[400];
 
 
     private bool beInRange(int R, Vector2Int v, int useType)
     {
         if (R == 1)
         {
-            return CurrentPoint.GetCellNeighbor().Contains(v);
+            return Neighbors.IsPointANeighborB(CurrentPoint, v);
         }
         setRange(R, useType);
         return rangeSightArea.Contains(v);
     }
+#if UNITYCLIENT
+    static Collider[] forSensor = new Collider[400];
+#endif
 
     private int GetRangeEntity(int R, GameEntity[] range, bool wantopsite = true)
     {
+#if UNITYCLIENT
         int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor, 1 << LayerMask.NameToLayer(ProjectConsts.Layer_Entity));
         int i = 0;
 
@@ -529,6 +532,30 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             }
         }
         return Mathf.Min(length, i);
+#else
+        List<Vector3Int> cuberange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R);
+        int i = 0;
+        //foreach (GameEntity entity in GameEntityMgr.Instance.GetAllEntities())
+        for (int m = 0; m < GameEntityMgr.Instance.GetAllEntities().Count && i < range.Length; m++)
+        {
+            GameEntity entity = GameEntityMgr.Instance.GetAllEntities()[m];
+            if (cuberange.Contains(Coords.Point_to_Cube(entity.CurrentPoint)))
+            {
+                if (wantopsite)
+                {
+                    if (beEneymyToMe(entity))
+                    {
+                        range[i++] = entity;
+                    }
+                }
+                else
+                {
+                    range[i++] = entity;
+                }
+            }
+        }
+        return i;
+#endif
     }
 
     public bool beEneymyToMe(GameEntity target)
@@ -685,7 +712,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         {
             GameEntity selected = GameEntityMgr.GetSelectedEntity();
             if (beEneymyToMe(selected))
-                //selected != null && selected.controllType == EntityType.Player)
+            //selected != null && selected.controllType == EntityType.Player)
             {
                 selected.AimAtTargetEntity(this);
                 this.NoticeBeAimed(selected);
@@ -731,6 +758,8 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     private void setRange(int R, int useType)
     {
+#if UNITYCLIENT //仅使用于客户端，除了块速没啥好说的
+        
         int length = Physics.OverlapSphereNonAlloc(HexCoords.GetHexVisualCoords(CurrentPoint), R, forSensor);
         rangeSightArea.Clear();
         if (useType == ForEye)
@@ -745,6 +774,25 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
                 rangeSightArea.Add(view.GetPoint());
             }
         }
+#else
+        //通用写法，客户端和服务端都能使用
+        List<Vector3Int> cubeRange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R);
+        rangeSightArea.Clear();
+        if (useType == ForEye)
+        {
+            CellSelector.allowClickSet.Clear();
+        }
+        foreach (Vector3Int cube in cubeRange)
+        {
+            Vector2Int hexPoint = Coords.Cube_to_Point(cube);
+            rangeSightArea.Add(hexPoint);
+            if (useType == ForEye)
+            {
+                CellSelector.allowClickSet.Add(hexPoint, true);
+            }
+        }
+#endif
+
     }
 
     void CleanLastEyeSight()

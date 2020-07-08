@@ -38,6 +38,7 @@ public class Daiji : GSNPCStateRemote
         {
             entity.DoReleaseSkill(remote.SelectedSkillID);
         }
+        await new WaitForEndOfFrame();
     }
 
     public void UpdateSensor()

@@ -97,6 +97,29 @@ public static class Coords
         y = -x - z;
         return new Vector3Int(x, y, z);
     }
+    public static Vector3Int Point_to_Cube(Vector2Int point)
+    {
+        if(offsettype == OffSetCoordsType.even_r)
+        {
+            return even_r_to_cube(point);
+        }
+        else if(offsettype == OffSetCoordsType.odd_r)
+        {
+            return odd_r_to_cube(point);
+        }
+        return new Vector3Int(point.x, 0, point.y);
+    }
+
+    public static Vector2Int Cube_to_Point(Vector3Int cube)
+    {
+        if (offsettype == OffSetCoordsType.even_r)
+        {
+            return cube_to_even_r(cube);
+        }
+        else
+            return cube_to_odd_r(cube);
+    }
+
 
     static Vector2Int cube_to_even_r(Vector3Int cube)
     {
@@ -209,10 +232,22 @@ public static class Neighbors
                     new Vector2Int(+1, +1)
                 },
             };
+
+   
     public static Vector2Int oddr_neighbor(Vector2Int point, HexCellDirection direction)
     {
         int parity = point.y & 1;
         return oddr_dir[parity][(int)direction] + point;
+    }
+
+    public static bool IsPointANeighborB(Vector2Int point,Vector2Int nei)
+    {
+        return oddr_neighbor(point, HexCellDirection.right) == nei
+            || oddr_neighbor(point, HexCellDirection.right + 1) == nei
+            || oddr_neighbor(point, HexCellDirection.right + 2) == nei
+            || oddr_neighbor(point, HexCellDirection.right + 3) == nei
+            || oddr_neighbor(point, HexCellDirection.right + 4) == nei
+            || oddr_neighbor(point, HexCellDirection.right + 5) == nei;
     }
 
 
