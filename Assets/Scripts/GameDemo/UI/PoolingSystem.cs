@@ -72,9 +72,9 @@ public class PoolingSystem
             if (myclone == null) return;
             //myclone.transform.SetParent(null);
             PoolingGameObjectRemote remote = myclone.GetComponent<PoolingGameObjectRemote>();
-            myclone.SetActive(false);
             remote?.OnEnterPool();
             set.Enqueue(myclone);
+            myclone.SetActive(false);
         }
     }
 

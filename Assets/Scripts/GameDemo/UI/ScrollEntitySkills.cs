@@ -21,7 +21,6 @@ public class ScrollEntitySkills : MonoBehaviour, ScrollViewRemote
     void Awake()
     {
         prefab = Resources.Load<GameObject>(SkillPrefabObj);
-
     }
     void OnEnable()
     {

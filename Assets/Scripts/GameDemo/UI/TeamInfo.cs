@@ -5,10 +5,10 @@ using UnityEngine.UI;
 public class TeamInfo : MonoBehaviour
 {
     [SerializeField]
-    private GameObject teamScrollPrefab;
+    private GameObject teamScrollPrefab = null;
 
     [SerializeField]
-    private ScrollRect teamScroll;
+    private ScrollRect teamScroll = null;
     void Start()
     {
         teamScroll.CalculateLayoutInputVertical();

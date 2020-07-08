@@ -9,7 +9,7 @@ public class SkillUI : MonoBehaviour, PoolingGameObjectRemote
     public Button btnSelectSkill;
     public GameObject selectBg;
     private bool valid = false;
-    
+
 
     private void OnEnable()
     {
@@ -19,8 +19,6 @@ public class SkillUI : MonoBehaviour, PoolingGameObjectRemote
 
     void Start()
     {
-        selectBg?.SetActive(false);
-
         if (text == null)
             text = transform.Find("Text").GetComponent<Text>();
 
@@ -29,7 +27,6 @@ public class SkillUI : MonoBehaviour, PoolingGameObjectRemote
             if (valid)
             {
                 GameEntityMgr.GetSelectedEntity().SelectSkill(skillID);
-                selectBg?.SetActive(true);
             }
         });
     }
@@ -38,13 +35,15 @@ public class SkillUI : MonoBehaviour, PoolingGameObjectRemote
 
     internal void UpdateUI()
     {
-        text.text = "技能id " + skillID;
-        selectBg.SetActive(GameEntityMgr.GetSelectedEntity().GetControllRemote().SelectedSkillID == skillID);
-
+        Skill sk = GameCore.GetRegistServices<BattleService>().GetSkillByID(skillID);
+        if (sk != null)
+            text.text = "技能 " + GameCore.GetRegistServices<BattleService>().GetSkillByID(skillID).desc;
+        
+        selectBg.SetActive(GameEntityMgr.GetSelectedEntity().GetControllRemote().SelectedSkillID == skillID && sk != null);
     }
 
 
-    int skillID;
+    public int skillID;
     public void SetModel(int data)
     {
         skillID = data;
@@ -59,6 +58,8 @@ public class SkillUI : MonoBehaviour, PoolingGameObjectRemote
 
     public void OnEnterPool()
     {
+        skillID = -1;
+        selectBg.SetActive(false);
         valid = false;
     }
 

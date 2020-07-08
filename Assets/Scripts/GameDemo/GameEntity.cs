@@ -112,8 +112,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         //设定模型外观
         int index = GameEntityMgr.Instance.GetAllEntities().IndexOf(this);
         entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID, index);
-        int overrideY = 15;
-        entityVisual.SetCameraPosition(this.transform.position, overrideY);
+        
 
         if (controllType == EntityType.Player)
         {
@@ -483,10 +482,10 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
         if (runtimeData.attackSight == 1)
         {
-            return Neighbors.IsPointANeighborB(CurrentPoint, gameEntity.CurrentPoint);
+            return gameEntity.runtimeData.visible && Neighbors.IsPointANeighborB(CurrentPoint, gameEntity.CurrentPoint);
         }
         else
-            return beInRange(runtimeData.attackSight, gameEntity.CurrentPoint, ForAttack);
+            return gameEntity.runtimeData.visible && beInRange(runtimeData.attackSight, gameEntity.CurrentPoint, ForAttack);
 
     }
 
@@ -535,7 +534,6 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 #else
         List<Vector3Int> cuberange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R);
         int i = 0;
-        //foreach (GameEntity entity in GameEntityMgr.Instance.GetAllEntities())
         for (int m = 0; m < GameEntityMgr.Instance.GetAllEntities().Count && i < range.Length; m++)
         {
             GameEntity entity = GameEntityMgr.Instance.GetAllEntities()[m];
@@ -633,9 +631,6 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     {
         return null;
     }
-
-
-
 
 }
 
@@ -843,7 +838,6 @@ public class GameEntityVisual
     private Animator m_anim;
     public bool modelLoaded = false;
 
-    private Camera myVisualCamera;
 
     Vector3 originalSize;
     int index;
@@ -1058,19 +1052,7 @@ public class GameEntityVisual
         }
     }
 
-    public async void SetCameraPosition(Vector3 position, int overrideY)
-    {
-        while (!modelLoaded)
-        {
-            await new WaitForEndOfFrame();
-        }
-        if (myVisualCamera != null)
-        {
-            position.y = overrideY;
-            myVisualCamera.transform.position = position;
-            myVisualCamera.transform.LookAt(myModelRoot.transform);
-        }
-    }
+   
 
     void SetHPPer(float hpper)
     {
@@ -1105,8 +1087,19 @@ public partial class GameEntity
         }
     }
 
+    public bool BeVisible()
+    {
+        return runtimeData.visible;
+    }
+
     public IEnumerator move2target()
     {
+        if (GetTargetEntity().runtimeData.visible == false)
+        {
+            AimAtTargetEntity(null);
+            yield break;
+        }
+
         MapController map = GameCore.GetRegistServices<MapController>();
         IList<ICell> path = map.GetPathFinder().FindPathOnMap(
             map.GetMap().GetCell(CurrentPoint),

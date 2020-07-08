@@ -8,7 +8,7 @@ using UnityEngine;
 public class ModelView : ScriptableObject
 {
     [SerializeField]
-    private GameObject prefab;
+    private GameObject prefab = null;
 
     public GameObject GetPrefab()
     {

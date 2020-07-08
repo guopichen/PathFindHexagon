@@ -108,7 +108,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             if (id == 0)
                 continue;
             GameEntity entity = id2allEntities[id];
-            if (!entity.BeAlive())
+            if (!entity.BeAlive() || !entity.BeVisible())
                 continue;
             Vector2Int targetPoint = entity.CurrentPoint;
             int distance = (targetPoint.x - centerEntity.CurrentPoint.x) * (targetPoint.x - centerEntity.CurrentPoint.x)

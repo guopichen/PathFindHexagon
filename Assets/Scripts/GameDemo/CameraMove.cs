@@ -48,7 +48,6 @@ public class CameraMove : MonoBehaviour, CameraMoveRemote
     }
 
 
-    bool beginMove = false;
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
