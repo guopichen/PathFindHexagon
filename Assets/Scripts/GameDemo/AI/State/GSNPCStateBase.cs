@@ -12,7 +12,8 @@ public interface GSNPCStateRemote : GameEntityMsg
     void LoseFocus();
     void GainFocus(GameEntity npc);
 
-    Task ExecuteActionAsync();
+    //Task ExecuteActionAsync();
+    IEnumerator ExecuteActionAsync();
 }
 public class GSNPCStateBase : GSNPCStateRemote
 {
@@ -53,9 +54,14 @@ public class GSNPCStateBase : GSNPCStateRemote
     {
     }
 
-    public async Task ExecuteActionAsync()
+    //public async Task ExecuteActionAsync()
+    //{
+    //    //await new WaitForEndOfFrame();
+    //}
+
+    public IEnumerator ExecuteActionAsync()
     {
-        await new WaitForEndOfFrame();
+        yield return null;
     }
 
     public void SendCmd(int fromID, Command msg, string arg)

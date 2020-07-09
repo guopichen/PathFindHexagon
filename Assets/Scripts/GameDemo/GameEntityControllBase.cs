@@ -32,7 +32,7 @@ public interface GameEntityControllRemote : DamageRemote, RuntimeDataRemote
     void ChangeHP(int delta);
     void ChangeTili(int delta);
     void ChangeHujia(int delta);
-    void CalledEverySeconds();
+    bool CalledEverySeconds();
     void CalledEveryFrame();
     bool PReleaseSkill(int skillID);
     void DoReleaseSkill(Skill skill);
@@ -125,12 +125,11 @@ public class GameEntityControllBase : GameEntityControllRemote
 
     }
 
-    public void CalledEverySeconds()
+    public bool CalledEverySeconds()
     {
         //runtimeData.tili += runtimeData.deltaTili / runtimeData.deltaTileTime;
         runtimeData.tili += 1;
         runtimeData.tili = Mathf.Clamp(runtimeData.tili, 0, runtimeData.maxTili);
-
 
         foreach(int equipSkill in runtimeData.activeSkillSockets)
         {
@@ -140,6 +139,7 @@ public class GameEntityControllBase : GameEntityControllRemote
                 runtimeData.cdSet[equipSkill] = Mathf.Clamp(runtimeData.cdSet[equipSkill], -30, 0);
             }
         }
+        return BeAlive();
     }
 
     public void CalledEveryFrame()

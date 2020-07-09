@@ -31,9 +31,14 @@ public class AutoFight : GSNPCStateRemote
 
     }
 
-    public async Task ExecuteActionAsync()
+    //public async Task ExecuteActionAsync()
+    //{
+    //    await aiLogic();
+    //}
+
+    public IEnumerator ExecuteActionAsync()
     {
-        await aiLogic();
+        yield return aiLogic();
     }
 
     public void UpdateSensor()
@@ -61,8 +66,8 @@ public class AutoFight : GSNPCStateRemote
         if (entity.GetTargetEntity() != null && entity.GetTargetEntity().BeAlive())
         {
             yield return entity.move2target();
-            yield return entity.doSkill2target();
-            //move2target();
+            //yield return entity.doSkill2target();
+             entity.doSkill2target();
         }
         else
         {

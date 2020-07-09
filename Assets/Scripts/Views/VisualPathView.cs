@@ -6,8 +6,8 @@ namespace PathFind
 {
     public class VisualPathView : MonoBehaviour
     {
-        [SerializeField] private MapController m_mapController;
-        [SerializeField] private LineRenderer m_lineRenderer;
+        [SerializeField] private MapController m_mapController = null;
+        [SerializeField] private LineRenderer m_lineRenderer = null;
         private void Start()
         {
             m_mapController.OnPathFind += OnPathFind;

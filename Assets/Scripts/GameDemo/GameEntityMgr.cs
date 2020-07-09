@@ -307,11 +307,15 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
         return Instance?.SelectedEntity != null && Instance.SelectedEntity.entityID == entityID;
     }
 
-
+    MapController mapRemote;
     public override void OnUpdateGame()
     {
         if (selectedEntity != null)
-            GameCore.GetRegistServices<MapController>().SetStartPoint(selectedEntity.CurrentPoint);
+        {
+            if (mapRemote == null)
+                mapRemote = GameCore.GetRegistServices<MapController>();
+            mapRemote.SetStartPoint(SelectedEntity.CurrentPoint);
+        }
 
         foreach (GameEntity entity in allEntities)
         {

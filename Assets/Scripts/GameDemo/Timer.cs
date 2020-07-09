@@ -21,8 +21,6 @@ public static class GameTimer
     public static async Task AwaitLoopSeconds(float seconds, Action action)
     {
         await new WaitForSeconds(seconds);
-        while (GameCore.GetGameStatus() != GameStatus.Run)
-            await new WaitForEndOfFrame();
         action();
         AwaitLoopSeconds(seconds, action).ForgetAwait();
     }
@@ -46,26 +44,26 @@ public static class GameTimer
         action();
     }
 
-    public static void LoopJobBaseOnCore(float seconds,Action action)
+    public static void LoopJobBaseOnCore(float seconds,Func<bool> action)
     {
         AwaitLoopSecondsBaseOnCore(seconds, action).ForgetAwait();
     }
 
 
-    public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Action action)
-    {
-        if (seconds == 0)
-            return;
+    //public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Action action)
+    //{
+    //    if (seconds == 0)
+    //        return;
 
-        float origin = seconds;
-        while (seconds > 0)
-        {
-            await GameCore.Instance.CoreTick();
-            seconds -= Time.deltaTime;
-        }
-        action();
-        AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
-    }
+    //    float origin = seconds;
+    //    while (seconds > 0)
+    //    {
+    //        await GameCore.Instance.CoreTick();
+    //        seconds -= Time.deltaTime;
+    //    }
+    //    action();
+    //    AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
+    //}
 
     public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Func<bool> action)
     {
@@ -112,7 +110,7 @@ public static class TaskExpand
 
     private static async void handleException(Task task)
     {
-        await task;
+        //await task;
         //do nothing
         if(task.Exception != null)
         {

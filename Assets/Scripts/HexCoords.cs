@@ -9,7 +9,7 @@ namespace PathFind
     {
         public static Vector3 GetHexVisualCoords(Vector2Int point)
         {
-            return GetHexVisualCoords(point, GameCore.GetRegistServices<MapController>().GetMapSize());
+            return GetHexVisualCoords(point,Vector2Int.zero/* GameCore.GetRegistServices<MapController>().GetMapSize()*/);
         }
 
 
@@ -19,24 +19,11 @@ namespace PathFind
         {
             return Coords.PointToVisualPosition(point);
 
-#if !DEFAULT
-            var shift = point.y % 2 == 0 ? 0 : 0.5f;
-            var x = point.x + shift - ((float)mapSize.x / 2) + 0.25f;
-            var y = point.y * CellHeight - (mapSize.y * CellHeight / 2f);
-            return new Vector3(x, 0, y);
-#else
+            //var shift = point.y % 2 == 0 ? 0 : 0.5f;
+            //var x = point.x + shift - ((float)mapSize.x / 2) + 0.25f;
+            //var y = point.y * CellHeight - (mapSize.y * CellHeight / 2f);
+            //return new Vector3(x, 0, y);
 
-            float x = 0;
-            float y = 0;
-            float z = 0;
-
-            x = point.x + point.y * 0.5f;
-            z = point.y * 0.866f;
-
-
-            return new Vector3(x, y, z);
-            
-#endif
         }
 
         public static Vector2Int GetHexLogicPoint(Vector3 worldSpace)

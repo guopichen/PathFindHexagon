@@ -29,10 +29,9 @@ public class Skill :ScriptableObject
     public List<Skill> subSkills;//子技能系统，比如一个技能是即伤害别人又治疗自己还对具体点位有释放技能
 
 
-#if UNITY_EDITOR
+
     [TextArea]
     public string desc;
-#endif
 
 }
 

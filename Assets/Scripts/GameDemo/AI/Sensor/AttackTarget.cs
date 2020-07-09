@@ -27,7 +27,7 @@ public class AttackTargetFullMap : GSSensor<GameEntity, GameEntity>
 
         if (overtime())
         {
-            GameEntityMgr mgrRemote = GameCore.GetRegistServices<GameEntityMgr>();
+            GameEntityMgr mgrRemote = GameEntityMgr.Instance;
             if (_in.GetTargetEntity() == null)
             {
                 GameEntity nearest = mgrRemote.GetNearestOpSideEntity(_in);

@@ -8,7 +8,7 @@ namespace PathFind
     [CreateAssetMenu(fileName = "CellAssets", menuName = "PathFind/CellAssets")]
     public class CellAssets : ScriptableObject
     {
-        [SerializeField] private List<CellPrefab> m_prefabs;
+        [SerializeField] private List<CellPrefab> m_prefabs = null;
 
         public CellPrefab GetRandomPrefab(bool isWalkable)
         {

@@ -71,7 +71,7 @@ public static class Coords
             y = visualposition.z * (-4 / (3 * h));
             x = (visualposition.x - (Mathf.RoundToInt(y) & 1) * 0.5f * w) / w;
         }
-        else if(offsettype == OffSetCoordsType.even_r)
+        else if (offsettype == OffSetCoordsType.even_r)
         {
             y = visualposition.z * (-4 / (3 * h));
             x = (visualposition.x - (1 - (Mathf.RoundToInt(y) & 1)) * 0.5f * w) / w;
@@ -99,11 +99,11 @@ public static class Coords
     }
     public static Vector3Int Point_to_Cube(Vector2Int point)
     {
-        if(offsettype == OffSetCoordsType.even_r)
+        if (offsettype == OffSetCoordsType.even_r)
         {
             return even_r_to_cube(point);
         }
-        else if(offsettype == OffSetCoordsType.odd_r)
+        else if (offsettype == OffSetCoordsType.odd_r)
         {
             return odd_r_to_cube(point);
         }
@@ -169,7 +169,11 @@ public static class Distance
 
     public static int Cube_distance(Vector3Int from, Vector3Int to)
     {
-        return Mathf.Max(Mathf.Abs(from.x - to.x), Mathf.Abs(from.y - to.y), Mathf.Abs(from.z - to.z));
+        int x = Mathf.Abs(from.x - to.x);
+        int y = Mathf.Abs(from.y - to.y);
+        int z = Mathf.Abs(from.z - to.z);
+        return Mathf.Max(x, y, z);
+        //return Mathf.Max(Mathf.Abs(from.x - to.x), Mathf.Abs(from.y - to.y), Mathf.Abs(from.z - to.z));
     }
 }
 
@@ -233,14 +237,14 @@ public static class Neighbors
                 },
             };
 
-   
+
     public static Vector2Int oddr_neighbor(Vector2Int point, HexCellDirection direction)
     {
         int parity = point.y & 1;
         return oddr_dir[parity][(int)direction] + point;
     }
 
-    public static bool IsPointANeighborB(Vector2Int point,Vector2Int nei)
+    public static bool IsPointANeighborB(Vector2Int point, Vector2Int nei)
     {
         return oddr_neighbor(point, HexCellDirection.right) == nei
             || oddr_neighbor(point, HexCellDirection.right + 1) == nei
@@ -251,9 +255,13 @@ public static class Neighbors
     }
 
 
-    public static List<Vector3Int> GetCubeRange(Vector3Int cube, int R)
+    public static List<Vector3Int> GetCubeRange(Vector3Int cube, int R, List<Vector3Int> container = null)
     {
-        List<Vector3Int> result = new List<Vector3Int>();
+
+        List<Vector3Int> result = container;
+        if (result == null)
+            result = new List<Vector3Int>();
+        result.Clear();
 #if Range1
         for (int x = -R; x <= R; x++)
         {
@@ -287,7 +295,7 @@ public static class Neighbors
 
 public static class DrawCoordsLine
 {
-   
+
 
 
     private static Vector3Int cubeRound(Vector3 cube)
@@ -396,10 +404,23 @@ public class CustomHex : MonoBehaviour
     float w;
     float h;
 
+    private void ssss()
+    {
+        Vector3 v= transform.position;
+        v.y += 1;
+        transform.position = v;
 
+        foreach(KeyValuePair<Vector2Int,CellView> kvp in cellViewSet)
+        {
+            Vector2Int key = kvp.Key;
+            CellView view = kvp.Value;
+        }
+    }
     Dictionary<Vector2Int, CellView> cellViewSet = new Dictionary<Vector2Int, CellView>();
     void Start()
     {
+        InvokeRepeating("ssss", 1, 1);
+        //GameTimer.AwaitLoopSeconds(1, ssss).ForgetAwait();
         for (int col = 0; col < mapSize.x; col += 1)
         {
             for (int row = 0; row < mapSize.y; row += 1)

@@ -6,7 +6,7 @@ namespace PathFind
 {
     public class CellSelector : MonoBehaviour
     {
-        [SerializeField] private Camera m_camera;
+        [SerializeField] private Camera m_camera = null;
 
         public Action<Vector2Int> OnStartPoint = delegate { };
         public Action<Vector2Int> OnEndPoint = delegate { };

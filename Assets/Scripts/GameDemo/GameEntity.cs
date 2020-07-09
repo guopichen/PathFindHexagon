@@ -112,7 +112,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         //设定模型外观
         int index = GameEntityMgr.Instance.GetAllEntities().IndexOf(this);
         entityVisual = new GameEntityVisual(this.transform.Find("Model").gameObject, ModelID, index);
-        
+
 
         if (controllType == EntityType.Player)
         {
@@ -149,6 +149,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
         GameTimer.AwaitLoopSecondsBaseOnCore(1, controllRemote.CalledEverySeconds).ForgetAwait();
 
+        calculateRangeOnEnterPoint();
 
         //if (controllType == EntityControllType.AI)
         //{
@@ -214,6 +215,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     IEnumerator updateContainer()
     {
+        yield return null;
         while (BeAlive())
         {
             if (runtimeSwitcher != null && runtimeSwitcher.MoveNext())
@@ -290,6 +292,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         {
             case entityEvent.enterNewCell:
                 controllRemote.ChangeTili(-1);
+
+
                 break;
         }
     }
@@ -340,7 +344,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (currentCell.x == point.x && currentCell.y == point.y)
             return;
         currentCell = point;
-
+        calculateRangeOnEnterPoint();
         this.transform.LookAt(HexCoords.GetHexVisualCoords(point));
         fireEntityEvent(entityEvent.enterNewCell);
     }
@@ -388,6 +392,11 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         return this.CurrentPoint == point;
     }
 
+
+    private List<Vector3Int> attackRangeCubeSpace = new List<Vector3Int>();
+    private List<Vector3Int> pursueRangeCubeSpace = new List<Vector3Int>();
+    private List<Vector3Int> eyesightRangeCubeSpace = new List<Vector3Int>();
+
     public void UpdateEntityRuntime(float dt)
     {
         controllRemote?.CalledEveryFrame();
@@ -395,6 +404,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         unityTest();
 #endif
 
+    }
+
+    private void calculateRangeOnEnterPoint()
+    {
+        Vector3Int cubePoint = Coords.Point_to_Cube(CurrentPoint);
+        Neighbors.GetCubeRange(cubePoint, runtimeData.attackSight, attackRangeCubeSpace);
+        Neighbors.GetCubeRange(cubePoint, runtimeData.pursueSight, pursueRangeCubeSpace);
+        Neighbors.GetCubeRange(cubePoint, runtimeData.eyeSight, eyesightRangeCubeSpace);
     }
 
     private void unityTest()
@@ -467,12 +484,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     {
         if (targetEntity == null)
             return false;
-        //if (entityConfig.pursueSight_config == 1)
-        if (runtimeData.pursueSight == 1)
-            return CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
-        else
-            //return beInRange(entityConfig.pursueSight_config, targetEntity.CurrentPoint, ForPursue);
-            return beInRange(runtimeData.pursueSight, targetEntity.CurrentPoint, ForPursue);
+
+        Vector3Int targetCubePos = Coords.Point_to_Cube(targetEntity.CurrentPoint);
+        return pursueRangeCubeSpace.Contains(targetCubePos);
+
+        //if (runtimeData.pursueSight == 1)
+        //    return CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
+        //else
+        //    return beInRange(runtimeData.pursueSight, targetEntity.CurrentPoint, ForPursue);
     }
 
     public bool IsEntityInAttackSight(GameEntity gameEntity)
@@ -480,13 +499,15 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (gameEntity == null)
             return false;
 
-        if (runtimeData.attackSight == 1)
-        {
-            return gameEntity.runtimeData.visible && Neighbors.IsPointANeighborB(CurrentPoint, gameEntity.CurrentPoint);
-        }
-        else
-            return gameEntity.runtimeData.visible && beInRange(runtimeData.attackSight, gameEntity.CurrentPoint, ForAttack);
+        Vector3Int targetCubePos = Coords.Point_to_Cube(targetEntity.CurrentPoint);
+        return attackRangeCubeSpace.Contains(targetCubePos);
 
+        //if (runtimeData.attackSight == 1)
+        //{
+        //    return gameEntity.runtimeData.visible && Neighbors.IsPointANeighborB(CurrentPoint, gameEntity.CurrentPoint);
+        //}
+        //else
+        //    return gameEntity.runtimeData.visible && beInRange(runtimeData.attackSight, gameEntity.CurrentPoint, ForAttack);
     }
 
 
@@ -532,7 +553,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         }
         return Mathf.Min(length, i);
 #else
-        List<Vector3Int> cuberange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R);
+        //List<Vector3Int> cuberange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R,cubeRange);
+        List<Vector3Int> cuberange = pursueRangeCubeSpace;
         int i = 0;
         for (int m = 0; m < GameEntityMgr.Instance.GetAllEntities().Count && i < range.Length; m++)
         {
@@ -735,14 +757,26 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     private void UpdateCurrentEyeSight()
     {
-        setRange(runtimeData.eyeSight, ForEye);
+        //setRange(runtimeData.eyeSight, ForEye);
 
-        foreach (var kvp in CellSelector.allowClickSet)
+        //foreach (var kvp in CellSelector.allowClickSet)
+        //{
+        //    CellView cellview = mapController.GetCellView(kvp.Key);
+        //    if (cellview != null)
+        //        cellview.SetCellViewStatus(CellViewStatus.EyeSight);
+        //}
+        CellSelector.allowClickSet.Clear();
+        foreach (var cubepoint in eyesightRangeCubeSpace)
         {
-            CellView cellview = mapController.GetCellView(kvp.Key);
-            if (cellview != null)
-                cellview.SetCellViewStatus(CellViewStatus.EyeSight);
+            Vector2Int point = Coords.Cube_to_Point(cubepoint);
+            CellSelector.allowClickSet.Add(point,true);
+
+            CellView cellview = mapController.GetCellView(point);
+            cellview?.SetCellViewStatus(CellViewStatus.EyeSight);
+
         }
+
+
     }
 
 
@@ -750,7 +784,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
     private const int ForPursue = 2;
     private const int ForAttack = 3;
 
-
+    List<Vector3Int> cubeRange = new List<Vector3Int>();
     private void setRange(int R, int useType)
     {
 #if UNITYCLIENT //仅使用于客户端，除了块速没啥好说的
@@ -771,7 +805,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         }
 #else
         //通用写法，客户端和服务端都能使用
-        List<Vector3Int> cubeRange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R);
+        cubeRange = Neighbors.GetCubeRange(Coords.Point_to_Cube(CurrentPoint), R, cubeRange);
         rangeSightArea.Clear();
         if (useType == ForEye)
         {
@@ -799,6 +833,13 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
                 cellview.SetCellViewStatus(CellViewStatus.None);
         }
         rangeSightArea.Clear();
+
+        foreach (var cubepoint in eyesightRangeCubeSpace)
+        {
+            Vector2Int point = Coords.Cube_to_Point(cubepoint);
+            CellView cellview = mapController.GetCellView(point);
+            cellview?.SetCellViewStatus(CellViewStatus.None);
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -1020,11 +1061,11 @@ public class GameEntityVisual
     };
 
 
-    public async void SetAniStatus(EntityAnimStatus status)
+    public void SetAniStatus(EntityAnimStatus status)
     {
-        while (!modelLoaded)
+        if (!modelLoaded)
         {
-            await new WaitForEndOfFrame();
+            return;
         }
         Status = status;//会播放动画
         //aniStatus = status;//不会播放动画
@@ -1052,7 +1093,7 @@ public class GameEntityVisual
         }
     }
 
-   
+
 
     void SetHPPer(float hpper)
     {
@@ -1070,12 +1111,14 @@ public partial class GameEntity
         while (BeAlive() && GetTargetEntity() != null && GetTargetEntity().BeAlive())
         {
             yield return move2target();
-            yield return doSkill2target();
+            //yield return doSkill2target();
+            doSkill2target();
         }
         if (BeAlive())
             GetEntityVisual().Status = EntityAnimStatus.Idle;
     }
-    public IEnumerator doSkill2target()
+    //public IEnumerator doSkill2target()
+    public void doSkill2target()
     {
         if (IsTargetEntityInAttackSight())
         {
@@ -1083,7 +1126,7 @@ public partial class GameEntity
             {
                 DoReleaseSelectedSkill();
             }
-            yield return new WaitForEndOfFrame();
+            //yield return new WaitForEndOfFrame();
         }
     }
 
@@ -1100,7 +1143,15 @@ public partial class GameEntity
             yield break;
         }
 
-        MapController map = GameCore.GetRegistServices<MapController>();
+        if (IsTargetEntityInAttackSight() || GetControllRemote().PTiliMove(1) == false)
+        {
+            if (entityVisual.Status == EntityAnimStatus.Run)
+                GetEntityVisual().SetAniStatus(EntityAnimStatus.Idle);
+            yield break;
+        }
+
+        MapController map = mapController;
+        //GameCore.GetRegistServices<MapController>();
         IList<ICell> path = map.GetPathFinder().FindPathOnMap(
             map.GetMap().GetCell(CurrentPoint),
             map.GetMap().GetCell(GetTargetEntity().CurrentPoint),

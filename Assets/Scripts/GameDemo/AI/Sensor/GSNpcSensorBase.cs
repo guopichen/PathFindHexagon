@@ -36,6 +36,7 @@ public class GSSensor<InType,OutType>
             }
             else
             {
+                if(!Object.ReferenceEquals(m_Value,value))
                 //if(!m_Value.Equals(value))//this will cause gc........... T_T
                 {
                     m_Value = value;

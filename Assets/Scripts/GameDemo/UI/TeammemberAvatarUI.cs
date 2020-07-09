@@ -20,10 +20,10 @@ public class TeammemberAvatarUI : MonoBehaviour, PoolingGameObjectRemote
             if (showEntity.BeAlive())
                 GameEntityMgr.SetSelectedEntity(showEntity);
         });
-        Action loopOneSeconds = () =>
+        Func<bool> loopOneSeconds = () =>
         {
             if (showEntity == null)
-                return;
+                return true;
             bool selected = GameEntityMgr.IsEntitySelected(showEntity.entityID);
             GameEntity gameEntity = GameEntityMgr.Instance.GetGameEntity(showEntity.entityID);
             selectedBg.SetActive(selected);
@@ -31,6 +31,7 @@ public class TeammemberAvatarUI : MonoBehaviour, PoolingGameObjectRemote
             deathBg.SetActive(!gameEntity.BeAlive());
             beMovingBg.SetActive(status == EntityAnimStatus.Run);
             beAttackBg.SetActive(status == EntityAnimStatus.Battle);
+            return true;
         };
         GameTimer.AwaitLoopSecondsBaseOnCore(1, loopOneSeconds).ForgetAwait();
     }

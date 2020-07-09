@@ -11,10 +11,10 @@ namespace PathFind
         public Action<ICell> OnEndCellSelect = delegate { };
         public Action<IList<ICell>> OnPathFind = delegate { };
 
-        [SerializeField] private CellSelector m_cellSelector;
-        [SerializeField] private CellAssets m_prefabs;
-        [SerializeField] private int m_mapSizeX;
-        [SerializeField] private int m_mapSizeY;
+        [SerializeField] private CellSelector m_cellSelector = null;
+        [SerializeField] private CellAssets m_prefabs = null;
+        [SerializeField] private int m_mapSizeX = 3;
+        [SerializeField] private int m_mapSizeY = 3;
 
         public int chunkWidth;
         public int chunkHeight;

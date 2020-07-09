@@ -8,10 +8,10 @@ namespace PathFind
 {
     public class PathInfoView : MonoBehaviour
     {
-        [SerializeField] private MapController m_mapController;
-        [SerializeField] private TMP_Text m_startCelllValue;
-        [SerializeField] private TMP_Text m_endCelllValue;
-        [SerializeField] private TMP_Text m_distanceValue;
+        [SerializeField] private MapController m_mapController  = null;
+        [SerializeField] private TMP_Text m_startCelllValue = null;
+        [SerializeField] private TMP_Text m_endCelllValue = null;
+        [SerializeField] private TMP_Text m_distanceValue = null;
 
 
         [SerializeField]
@@ -58,7 +58,7 @@ namespace PathFind
 
         private void OnStartCellSelect(ICell cell)
         {
-            m_startCelllValue.text = cell.Point.ToString();
+            //m_startCelllValue.text = cell.Point.ToString();
         }
         private void OnEndCellSelect(ICell cell)
         {

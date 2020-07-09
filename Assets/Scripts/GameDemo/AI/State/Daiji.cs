@@ -31,14 +31,23 @@ public class Daiji : GSNPCStateRemote
     {
     }
 
-    public async Task ExecuteActionAsync()
+    //public async Task ExecuteActionAsync()
+    //{
+    //    GameEntityControllRemote remote = entity.GetControllRemote();
+    //    if (inAttackSight && remote.PReleaseSkill(remote.SelectedSkillID))
+    //    {
+    //        entity.DoReleaseSkill(remote.SelectedSkillID);
+    //    }
+    //    await new WaitForEndOfFrame();
+    //}
+    public IEnumerator ExecuteActionAsync()
     {
         GameEntityControllRemote remote = entity.GetControllRemote();
         if (inAttackSight && remote.PReleaseSkill(remote.SelectedSkillID))
         {
             entity.DoReleaseSkill(remote.SelectedSkillID);
         }
-        await new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
     }
 
     public void UpdateSensor()

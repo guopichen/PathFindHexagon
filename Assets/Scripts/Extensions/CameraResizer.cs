@@ -5,9 +5,9 @@ namespace Extensions.Cameras
     [ExecuteInEditMode]
     public class CameraResizer : MonoBehaviour
     {
-        [SerializeField] private Camera m_mainCamera;
-        [SerializeField] private float m_minWidth;
-        [SerializeField] private float m_minHeight;
+        [SerializeField] private Camera m_mainCamera = null;
+        [SerializeField] private float m_minWidth = 0;
+        [SerializeField] private float m_minHeight = 0;
 
         private void Update()
         {

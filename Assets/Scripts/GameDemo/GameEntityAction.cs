@@ -131,7 +131,8 @@ public class GameEntityAction : GameEntityActionRemote, GameEntityMsg
             if (mutexState1 != null)
             {
                 mutexState1.ExecuteAction();
-                yield return mutexState1?.ExecuteActionAsync().AsIEnumerator();
+                //yield return mutexState1?.ExecuteActionAsync().AsIEnumerator();
+                yield return mutexState1?.ExecuteActionAsync();
             }
             else
             {

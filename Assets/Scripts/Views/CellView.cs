@@ -15,7 +15,7 @@ namespace PathFind
         private Vector3 viewPosition;
 
 
-        Renderer renderer;
+        Renderer m_renderer;
         Material[] materials;
 
         static Material eyeSight;
@@ -24,8 +24,8 @@ namespace PathFind
 
         private void Start()
         {
-            renderer = this.gameObject.GetComponent<Renderer>();
-            materials = renderer.materials;
+            m_renderer = this.gameObject.GetComponent<Renderer>();
+            materials = m_renderer.materials;
             if (eyeSight == null)
             {
                 eyeSight = Resources.Load<Material>("EyeSight");
@@ -60,12 +60,12 @@ namespace PathFind
             viewStatus = status;
             if ((status & CellViewStatus.EyeSight) == CellViewStatus.EyeSight)
             {
-                renderer.materials = replace;
+                m_renderer.materials = replace;
             }
 
             if (status == CellViewStatus.None)
             {
-                renderer.materials = materials;
+                m_renderer.materials = materials;
             }
         }
     }

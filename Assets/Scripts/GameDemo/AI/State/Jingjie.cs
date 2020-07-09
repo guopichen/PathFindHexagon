@@ -32,9 +32,13 @@ public class Jingjie : GSNPCStateRemote
 
     }
 
-    public async Task ExecuteActionAsync()
+    //public async Task ExecuteActionAsync()
+    //{
+    //    await aiLogic();
+    //}
+    public IEnumerator ExecuteActionAsync()
     {
-        await aiLogic();
+        yield return aiLogic();
     }
 
     public void UpdateSensor()
@@ -59,7 +63,8 @@ public class Jingjie : GSNPCStateRemote
         if (entity.IsTargetInPursueSight() && entity.GetTargetEntity().BeAlive())
         {
             yield return entity.move2target();
-            yield return entity.doSkill2target();
+            //yield return entity.doSkill2target();
+            entity.doSkill2target();
             //move2target();
         }
         else

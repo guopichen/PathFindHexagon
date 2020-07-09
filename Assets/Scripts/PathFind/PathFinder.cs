@@ -15,8 +15,10 @@ namespace PathFind
             var mapSize = map.GetMapSize();
             var mapDic = map.GetCells();
 
-            var opened = new HashSet<ICell>();
-            var closed = new HashSet<ICell>();
+            //var opened = new HashSet<ICell>();
+            //var closed = new HashSet<ICell>();
+            var opened = new List<ICell>();
+            var closed = new List<ICell>();
 
             opened.Add(cellStart);
 
@@ -27,7 +29,13 @@ namespace PathFind
 
             while (opened.Count > 0)
             {
-                var minOpened = opened.OrderBy(x => x.Summ).First();
+                //var minOpened = opened.OrderBy(x => x.Summ).First();
+                opened.Sort((x,y) => {
+                    if(x.Summ < y.Summ)
+                        return -1;
+                    return 1;
+                });
+                var minOpened = opened[0];
                 closed.Add(minOpened);
                 opened.Remove(minOpened);
 
@@ -99,7 +107,7 @@ namespace PathFind
                             //var HeurX = element.Point.x > cellEnd.Point.x ? element.Point.x - cellEnd.Point.x : cellEnd.Point.x - element.Point.x;
                             //var HeurY = element.Point.y > cellEnd.Point.y ? element.Point.y - cellEnd.Point.y : cellEnd.Point.y - element.Point.y;
                             //element.SetHeuristic((int)Math.Sqrt(HeurX * HeurX + HeurY * HeurY) * addDistance);//简单的勾股定理估算
-                            element.SetHeuristic(Distance.oddr_distance(element.Point, cellEnd.Point) * addDistance);//基于6边形tile的距离特性估算
+                            element.SetHeuristic(Distance.Cube_distance(Coords.Point_to_Cube(element.Point), Coords.Point_to_Cube(cellEnd.Point)) * addDistance);//基于6边形tile的距离特性估算
 
                             if (element == cellEnd)
                             {
