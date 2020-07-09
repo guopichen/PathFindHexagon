@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -122,7 +123,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
 
             runtimeSwitcher = player_LogicSwitchA;
-            StartCoroutine(updateContainer());
+            //StartCoroutine(updateContainer());
+            Observable.FromCoroutine(updateContainer).Subscribe();
         }
         else if (controllType == EntityType.AI)
         {
@@ -132,7 +134,9 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             controllRemote = ai;
             runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
             runtimeSwitcher = playerAndAI_LogicSwitchB;
-            StartCoroutine(updateContainer());
+            //StartCoroutine(updateContainer());
+            Observable.FromCoroutine(updateContainer).Subscribe();
+
         }
         else if (controllType == EntityType.PlayerSummon)
         {
@@ -142,7 +146,9 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             controllRemote = ai;
             runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
             runtimeSwitcher = playerAndAI_LogicSwitchB;
-            StartCoroutine(updateContainer());
+            //StartCoroutine(updateContainer());
+            Observable.FromCoroutine(updateContainer).Subscribe();
+
         }
 
 
