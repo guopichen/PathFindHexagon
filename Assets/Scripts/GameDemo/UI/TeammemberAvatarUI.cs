@@ -33,7 +33,7 @@ public class TeammemberAvatarUI : MonoBehaviour, PoolingGameObjectRemote
             beAttackBg.SetActive(status == EntityAnimStatus.Battle);
             return true;
         };
-        GameTimer.AwaitLoopSecondsBaseOnCore(1, loopOneSeconds).ForgetAwait();
+        GameTimer.AwaitLoopSecondsBaseOnCore(1, loopOneSeconds);
     }
 
     private void OnEnable()

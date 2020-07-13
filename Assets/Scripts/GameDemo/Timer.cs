@@ -7,78 +7,196 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using UnityEngine;
-
+using UniRx;
+using Debug = UnityEngine.Debug;
 public static class GameTimer
 {
-
     #region 用于通常情况下的
-    public static async Task AwaitSeconds(float seconds, Action action)
+    public static void AwaitSeconds(float seconds, Action action)
     {
-        await new WaitForSeconds(seconds);
-        action();
+        //using (Subject<float> subject = new Subject<float>())
+        //{
+        //    subject.Subscribe((_inputData) =>
+        //    {
+        //        TimeSpan _seconds = new TimeSpan((long)_inputData * TimeSpan.TicksPerSecond);
+        //        Observable.Timer(_seconds).Subscribe(__ =>
+        //        {
+        //            action();
+        //        });
+        //    });
+        //    subject.OnNext(seconds);
+        //    subject.OnCompleted();
+        //}
+
+        Observable.Create<float>((observer) =>
+        {
+            observer.OnNext(seconds);
+            observer.OnCompleted();
+            return Disposable.Empty;
+        }).Subscribe(_inputseconds =>
+        {
+            TimeSpan _seconds = TimeSpan.FromSeconds(_inputseconds);
+            Observable.Timer(_seconds).Subscribe(__ =>
+            {
+                action();
+            });
+        });
     }
 
-    public static async Task AwaitLoopSeconds(float seconds, Action action)
+    public static void AwaitLoopSeconds(float seconds, Func<bool> action)
     {
-        await new WaitForSeconds(seconds);
-        action();
-        AwaitLoopSeconds(seconds, action).ForgetAwait();
+        #region 写法1
+        //Observable.Create<float>((observer) =>
+        //{
+        //    observer.OnNext(seconds);
+        //    observer.OnCompleted();
+        //    return Disposable.Empty;
+        //}).Subscribe(_inputseconds =>
+        //{
+        //    TimeSpan _seconds = TimeSpan.FromSeconds(_inputseconds);
+        //    Observable.Timer(_seconds).Subscribe(__ =>
+        //    {
+        //        if (action())
+        //        {
+        //            AwaitLoopSeconds(seconds, action);
+        //        }
+        //    });
+        //});
+        #endregion
+        #region 写法2 低gc
+        Observable.Create<float>(observer =>
+        {
+            bool loop = false;
+            float start = 0;
+            Action innerAction = () =>
+            {
+                start = 0;
+                loop = action();
+                if (!loop)
+                {
+                    observer.OnCompleted();
+                }
+            };
+            IDisposable disposable = Observable.EveryEndOfFrame().Subscribe(frameCnt =>
+            {
+                start += Time.deltaTime;
+                if (start >= seconds)
+                {
+                    innerAction();
+                }
+            });
+            innerAction += () =>
+            {
+                if (!loop)
+                    disposable.Dispose();
+            };
+            return
+            Disposable.Empty;
+        }).Subscribe();
+        #endregion
     }
 
     #endregion
 
     #region 基于GameCore的情况,时间流逝需要考虑到GameCore的状态，同时一定要在GameCore工作之后使用
-    public static void DelayJobBaseOnCore(float seconds,Action action)
+    public static void DelayJobBaseOnCore(float seconds, Action action)
     {
-        
-        AwaitSecondsBaseOnCore(seconds, action).ForgetAwait();
+        AwaitSecondsBaseOnCore(seconds, action);
     }
 
 
-    public static async Task AwaitSecondsBaseOnCore(float seconds,Action action)
+    public static void AwaitSecondsBaseOnCore(float seconds, Action action)
     {
-        while (seconds > 0)
+        //最简单的使用unitx，用subject
+        //using (Subject<float> subject = new Subject<float>())
+        //{
+        //    subject.Subscribe((_totalSeconds) =>
+        //    {
+        //        Action innerAction = () => { action(); };
+        //        IDisposable disposable = Observable.EveryEndOfFrame().Subscribe(frameCnt =>
+        //            {
+        //                if (GameCore.Instance.coreStatus == GameStatus.Run)
+        //                {
+        //                    _totalSeconds -= Time.deltaTime;
+        //                }
+        //                if (_totalSeconds <= 0)
+        //                {
+        //                    innerAction();
+        //                }
+        //            });
+        //        innerAction += () => { disposable.Dispose(); };
+        //    });
+        //    subject.OnNext(seconds);
+        //    subject.OnCompleted();
+        //}
+
+        Observable.Create<float>(observer =>
         {
-            await GameCore.Instance.CoreTick();
-            seconds -= Time.deltaTime;
-        }
-        action();
+            float start = 0;
+            Action innerAction = () =>
+            {
+                action();
+                observer.OnCompleted();
+            };
+            IDisposable disposable = Observable.EveryEndOfFrame().Subscribe(frameCnt =>
+            {
+                if (GameCore.Instance.coreStatus == GameStatus.Run)
+                {
+                    start += Time.deltaTime;
+                }
+                if (start >= seconds)
+                {
+                    innerAction();
+                }
+            });
+            innerAction += () =>
+            {
+                disposable.Dispose();
+            };
+            return Disposable.Empty;
+        }).Subscribe();
+
+        return;
     }
 
-    public static void LoopJobBaseOnCore(float seconds,Func<bool> action)
+    public static void LoopJobBaseOnCore(float seconds, Func<bool> action)
     {
-        AwaitLoopSecondsBaseOnCore(seconds, action).ForgetAwait();
+        AwaitLoopSecondsBaseOnCore(seconds, action);
     }
 
-
-    //public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Action action)
-    //{
-    //    if (seconds == 0)
-    //        return;
-
-    //    float origin = seconds;
-    //    while (seconds > 0)
-    //    {
-    //        await GameCore.Instance.CoreTick();
-    //        seconds -= Time.deltaTime;
-    //    }
-    //    action();
-    //    AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
-    //}
-
-    public static async Task AwaitLoopSecondsBaseOnCore(float seconds, Func<bool> action)
+    public static void AwaitLoopSecondsBaseOnCore(float seconds, Func<bool> action)
     {
-        float origin = seconds;
-        while (seconds > 0)
+        Observable.Create<float>(observer =>
         {
-            await GameCore.Instance.CoreTick();
-            seconds -= Time.deltaTime;
-        }
-        bool _continue = action();
-        if(_continue)
-        {
-            AwaitLoopSecondsBaseOnCore(origin, action).ForgetAwait();
-        }
+            bool loop = false;
+            float start = 0;
+            Action innerAction = () =>
+            {
+                start = 0;
+                loop = action();
+                if (!loop)
+                {
+                    observer.OnCompleted();
+                }
+            };
+            IDisposable disposable = Observable.EveryEndOfFrame().Subscribe(frameCnt =>
+            {
+                if (GameCore.Instance.coreStatus == GameStatus.Run)
+                {
+                    start += Time.deltaTime;
+                }
+                if (start >= seconds)
+                {
+                    innerAction();
+                }
+            });
+            innerAction += () =>
+            {
+                if (!loop)
+                    disposable.Dispose();
+            };
+            return Disposable.Empty;
+        }).Subscribe();
     }
 
     #endregion
@@ -111,9 +229,9 @@ public static class TaskExpand
 
     private static async void handleException(Task task)
     {
-        //await task;
+        await task;
         //do nothing
-        if(task.Exception != null)
+        if (task.Exception != null)
         {
             HDebug.Log(task.Exception);
         }

@@ -97,7 +97,13 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
     {
         int minDistance = 999;
         int minID = 0;
-        foreach (int id in allEntities.Select((x) =>
+        List<GameEntity> set = allEntities;
+        if (centerEntity.GetControllType() == EntityType.AI)
+        {
+            set = playerEntities;
+        }
+
+        foreach (int id in set.Select((x) =>
          {
              if (centerEntity.beEneymyToMe(x) && x.BeAlive())
                  return x.entityID;
@@ -221,7 +227,8 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             }
 
         }
-        GameTimer.AwaitSeconds(3, () => {
+        GameTimer.AwaitSeconds(3, () =>
+        {
             foreach (Vector3Int cube in lines)
             {
                 Vector2Int point = Coords.cube_to_odd_r(cube);
@@ -232,9 +239,8 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
                     v.y = 0;
                     cellview.transform.position = v;
                 }
-
             }
-        }).ForgetAwait();
+        });
     }
 
     private void DrawRingCell(Vector2Int Point)

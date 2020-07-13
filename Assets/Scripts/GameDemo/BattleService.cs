@@ -115,6 +115,7 @@ public class BattleService : GameServiceBase, BattleServiceRemote
         GameEntityRuntimeData senderData = sender.GetControllRemote().GetOrUpdateRuntimeData(null);
 
         int finalDamage = Mathf.CeilToInt(senderData.atk - targetData.hujia);
+        finalDamage = 0;
         entity.GetControllRemote().CaughtDamage(finalDamage, DamageTypeEnum.ColdWeapon);
     }
 

@@ -54,10 +54,10 @@ public class GSNPCStateBase : GSNPCStateRemote
     {
     }
 
-    //public async Task ExecuteActionAsync()
-    //{
-    //    //await new WaitForEndOfFrame();
-    //}
+    public async Task ExecuteActionAsync1()
+    {
+        //await new WaitForEndOfFrame();
+    }
 
     public IEnumerator ExecuteActionAsync()
     {

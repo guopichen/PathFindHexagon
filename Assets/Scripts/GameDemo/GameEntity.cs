@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -47,6 +48,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     private Vector2Int currentCell;
 
     public Vector2Int CurrentPoint { get { return currentCell; } }
+    public Vector3Int CurrentCubePoint = Vector3Int.zero;
 
     public int ModelID { get; set; }
 
@@ -124,7 +126,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
             runtimeSwitcher = player_LogicSwitchA;
             //StartCoroutine(updateContainer());
-            Observable.FromCoroutine(updateContainer).Subscribe();
+            //Observable.FromCoroutine(updateContainer).Subscribe();
+            MainThreadDispatcher.StartCoroutine(updateContainer());
         }
         else if (controllType == EntityType.AI)
         {
@@ -137,6 +140,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             //StartCoroutine(updateContainer());
             Observable.FromCoroutine(updateContainer).Subscribe();
 
+
         }
         else if (controllType == EntityType.PlayerSummon)
         {
@@ -148,13 +152,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             runtimeSwitcher = playerAndAI_LogicSwitchB;
             //StartCoroutine(updateContainer());
             Observable.FromCoroutine(updateContainer).Subscribe();
-
         }
 
 
 
-        GameTimer.AwaitLoopSecondsBaseOnCore(1, controllRemote.CalledEverySeconds).ForgetAwait();
-
+        GameTimer.AwaitLoopSecondsBaseOnCore(1, controllRemote.CalledEverySeconds);
+       
         calculateRangeOnEnterPoint();
 
         //if (controllType == EntityControllType.AI)
@@ -412,12 +415,14 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
 
     }
 
+
     private void calculateRangeOnEnterPoint()
     {
-        Vector3Int cubePoint = Coords.Point_to_Cube(CurrentPoint);
-        Neighbors.GetCubeRange(cubePoint, runtimeData.attackSight, attackRangeCubeSpace);
-        Neighbors.GetCubeRange(cubePoint, runtimeData.pursueSight, pursueRangeCubeSpace);
-        Neighbors.GetCubeRange(cubePoint, runtimeData.eyeSight, eyesightRangeCubeSpace);
+        CurrentCubePoint =
+            Coords.Point_to_Cube(CurrentPoint);
+        Neighbors.GetCubeRange(CurrentCubePoint, runtimeData.attackSight, attackRangeCubeSpace);
+        Neighbors.GetCubeRange(CurrentCubePoint, runtimeData.pursueSight, pursueRangeCubeSpace);
+        Neighbors.GetCubeRange(CurrentCubePoint, runtimeData.eyeSight, eyesightRangeCubeSpace);
     }
 
     private void unityTest()
@@ -491,8 +496,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (targetEntity == null)
             return false;
 
-        Vector3Int targetCubePos = Coords.Point_to_Cube(targetEntity.CurrentPoint);
-        return pursueRangeCubeSpace.Contains(targetCubePos);
+        //Vector3Int targetCubePos = Coords.Point_to_Cube(targetEntity.CurrentPoint);
+        return pursueRangeCubeSpace.Contains(targetEntity.CurrentCubePoint);
 
         //if (runtimeData.pursueSight == 1)
         //    return CurrentPoint.GetCellNeighbor().Contains(targetEntity.CurrentPoint);
@@ -505,8 +510,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         if (gameEntity == null)
             return false;
 
-        Vector3Int targetCubePos = Coords.Point_to_Cube(targetEntity.CurrentPoint);
-        return attackRangeCubeSpace.Contains(targetCubePos);
+        //Vector3Int targetCubePos = Coords.Point_to_Cube(targetEntity.CurrentPoint);
+        return attackRangeCubeSpace.Contains(targetEntity.CurrentCubePoint);
 
         //if (runtimeData.attackSight == 1)
         //{
@@ -565,7 +570,9 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         for (int m = 0; m < GameEntityMgr.Instance.GetAllEntities().Count && i < range.Length; m++)
         {
             GameEntity entity = GameEntityMgr.Instance.GetAllEntities()[m];
-            if (cuberange.Contains(Coords.Point_to_Cube(entity.CurrentPoint)))
+
+            //if (cuberange.Contains(Coords.Point_to_Cube(entity.CurrentPoint)))
+            if (cuberange.Contains(entity.CurrentCubePoint))
             {
                 if (wantopsite)
                 {
@@ -775,7 +782,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
         foreach (var cubepoint in eyesightRangeCubeSpace)
         {
             Vector2Int point = Coords.Cube_to_Point(cubepoint);
-            CellSelector.allowClickSet.Add(point,true);
+            CellSelector.allowClickSet.Add(point, true);
 
             CellView cellview = mapController.GetCellView(point);
             cellview?.SetCellViewStatus(CellViewStatus.EyeSight);
@@ -1183,6 +1190,7 @@ public partial class GameEntity
                 startIndex = startIndex + 1;
             }
         }
+        yield return null;
     }
     public void DoReleaseSelectedSkill()
     {
