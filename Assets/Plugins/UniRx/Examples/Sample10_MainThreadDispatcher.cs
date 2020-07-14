@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UniRx.Examples
@@ -9,7 +10,7 @@ namespace UniRx.Examples
         public void Run()
         {
             // MainThreadDispatcher is heart of Rx and Unity integration
-
+            current = aaaa();
             // StartCoroutine can start coroutine besides MonoBehaviour.
             MainThreadDispatcher.StartCoroutine(TestAsync());
 
@@ -25,7 +26,7 @@ namespace UniRx.Examples
             // Timebased operations is run on MainThread(as default)
             // All timebased operation(Interval, Timer, Delay, Buffer, etc...)is single thread, thread safe!
             Observable.Interval(TimeSpan.FromSeconds(1))
-                .Subscribe(x => Debug.Log(x));
+                .Subscribe(x => { /*Debug.Log(x)*/});
 
             // Observable.Start use ThreadPool Scheduler as default.
             // ObserveOnMainThread return to mainthread
@@ -36,6 +37,10 @@ namespace UniRx.Examples
 
         IEnumerator TestAsync()
         {
+            while (current.MoveNext())
+            {
+                yield return current.Current;
+            }
             Debug.Log("a");
             yield return new WaitForSeconds(1);
             Debug.Log("b");
@@ -43,6 +48,25 @@ namespace UniRx.Examples
             Debug.Log("c");
             yield return new WaitForSeconds(1);
             Debug.Log("d");
+        }
+
+
+        IEnumerator aaaa()
+        {
+            while(true)
+            {
+                //Debug.Log("aaa");
+                yield return null;
+            }
+        }
+        IEnumerator current;
+        IEnumerator bbb()
+        {
+            while (true)
+            {
+                Debug.Log("bbbb");
+                yield return null;
+            }
         }
     }
 }

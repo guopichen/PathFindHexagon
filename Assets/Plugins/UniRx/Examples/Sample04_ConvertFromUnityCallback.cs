@@ -1,6 +1,6 @@
 ﻿using System;
 using UnityEngine;
-
+using UniRx;
 namespace UniRx.Examples
 {
     public class Sample04_ConvertFromUnityCallback : MonoBehaviour
@@ -53,6 +53,10 @@ namespace UniRx.Examples
 
         void Awake()
         {
+            Observable.Create<int>((observer)=>{
+
+                return null;
+            });
             // method is separatable and composable
             LogHelper.LogCallbackAsObservable()
                 .Where(x => x.LogType == LogType.Warning)

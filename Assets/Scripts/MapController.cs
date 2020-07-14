@@ -122,6 +122,13 @@ namespace PathFind
             OnPathFind?.Invoke(path);
         }
 
+        public IList<ICell> CalculatePath()
+        {
+            var path = _pathFinder.FindPathOnMap(_cellStart, _cellEnd, _map);
+
+            return path;
+        }
+
 
         private void OnDestroy()
         {

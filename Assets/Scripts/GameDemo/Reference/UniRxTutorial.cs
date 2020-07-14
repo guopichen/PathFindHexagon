@@ -303,7 +303,7 @@ public class UniRxTutorial
     }
     class InnerInt
     {
-        int i;
+        public int i;
         public InnerInt(int i)
         {
             this.i = i;
@@ -341,13 +341,73 @@ public class UniRxTutorial
 
     public void Example18()
     {
-        Observable.Interval(TimeSpan.FromSeconds(1)).Take(3).Timestamp().TimeInterval().Dump("timestamp");
-       
+        Observable.Interval(TimeSpan.FromSeconds(1)).Take(3).Timestamp().Dump("timestamp");
+        Observable.Interval(TimeSpan.FromSeconds(1)).Take(3).TimeInterval().Dump("timeinterval");
+        Observable.Interval(TimeSpan.FromSeconds(1)).Take(3).Materialize().Dump("materialize");
+    }
 
+    public void Example19()
+    {
+        Observable.Range(1, 30).SelectMany((i) => { if (i < 27 && i > 0) return Observable.Return<string>("A"); return Observable.Empty<string>(); }).Dump("select many");
+    }
+
+    void Example20()
+    {
+        var query = from i in Observable.Range(1, 5)
+                    where i % 2 == 0
+                    select i;
+        Observable.Range(1, 5).Where(i => i % 2 == 0).Select(i => i);
     }
 
 
+    public void Example21()
+    {
+        var range = Observable.Range(0, 3);
+        int index = -1;
+        var errorResult = range.Select(i => { index++; return i; });
+        errorResult.Subscribe(i => { Debug.Log("input is " + i + " index is " + index); }, () => { /*index = -1;*/ });
+        errorResult.Subscribe(i => { Debug.Log("input2 is " + i + " index2 is " + index); });
 
+
+        var result = range.Select((idx, element) => new { Index = idx, e = element });
+        result.Subscribe(i => { Debug.Log("ok input is " + i.e + " index is " + i.Index); });
+        result.Subscribe(i => { Debug.Log("ok input2 is " + i.e + " index2 is " + i.Index); });
+    }
+
+    void Example22()
+    {
+        Subject<InnerInt> sub = new Subject<InnerInt>();
+
+        sub.Subscribe(innerInt => innerInt.i = 999);
+        sub.Subscribe(innerInt => Debug.Log(innerInt.i));
+
+
+        sub.OnNext(new InnerInt(1));
+        sub.OnNext(new InnerInt(10));//传递的是引用
+        sub.OnCompleted();
+    }
+
+    public  void Example23()
+    {
+        
+        var result = Observable.Range(1, 3).Do(i => { Debug.Log("call before onnext"); }, e => { Debug.Log("call before error"); }, () => { Debug.Log("call before complete"); });
+        result.Subscribe(i => { Debug.Log("on next " + i); }, () => { Debug.Log("complete"); });
+
+        //建议do中完成数据的改动
+        Subject<InnerInt> sub = new Subject<InnerInt>();
+
+        var better = sub.Do(innerInt => innerInt.i = 999);
+        better.Subscribe(innerInt => Debug.Log(innerInt.i));
+        sub.OnNext(new InnerInt(1));
+        sub.OnNext(new InnerInt(10));//传递的是引用
+        sub.OnCompleted();
+    }
+
+    public void Example24()
+    {
+        Observable.Range(1, 3).Merge(Observable.Range(4, 4)).Dump("merge");//i do not know
+
+    }
 }
 
 public static class expand
@@ -357,9 +417,11 @@ public static class expand
         source.Subscribe(i =>
         {
             Debug.Log(string.Format("{0}-->{1}", name, i));
-        }, ex => {
+        }, ex =>
+        {
             Debug.LogError("error");
-        }, () => {
+        }, () =>
+        {
             Debug.Log(string.Format("{0}-->finish", name));
         });
     }

@@ -127,7 +127,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             runtimeSwitcher = player_LogicSwitchA;
             //StartCoroutine(updateContainer());
             //Observable.FromCoroutine(updateContainer).Subscribe();
-            MainThreadDispatcher.StartCoroutine(updateContainer());
+            //MainThreadDispatcher.StartCoroutine(updateContainer());
         }
         else if (controllType == EntityType.AI)
         {
@@ -138,9 +138,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
             runtimeSwitcher = playerAndAI_LogicSwitchB;
             //StartCoroutine(updateContainer());
-            Observable.FromCoroutine(updateContainer).Subscribe();
-
-
+            //Observable.FromCoroutine(updateContainer).Subscribe();
+            //MainThreadDispatcher.StartCoroutine(updateContainer());
         }
         else if (controllType == EntityType.PlayerSummon)
         {
@@ -151,7 +150,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
             runtimeData = controllRemote.GetOrUpdateRuntimeData(this);
             runtimeSwitcher = playerAndAI_LogicSwitchB;
             //StartCoroutine(updateContainer());
-            Observable.FromCoroutine(updateContainer).Subscribe();
+            //Observable.FromCoroutine(updateContainer).Subscribe();
         }
 
 
@@ -160,6 +159,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
        
         calculateRangeOnEnterPoint();
 
+
+        initUniRxPrograming();
         //if (controllType == EntityControllType.AI)
         //{
         //    onReachDst += async () =>
@@ -387,6 +388,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
     public void PredictPathWillChange()
     {
         pathChanged = true;
+
+        RX_PathChanged.Value = true;
     }
 
     private void AcceptPathChange()
@@ -1202,6 +1205,9 @@ public partial class GameEntity
         return PReleaseSkill(GetControllRemote().SelectedSkillID);
     }
 }
+
+
+
 
 //说明动作的归属状态
 public enum EntityAnimStatus

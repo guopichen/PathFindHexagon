@@ -25,11 +25,16 @@ namespace UniRx.Examples
 
         void Start()
         {
+            //将可能产生提交stream的 stream 合并为一个 stream
+
             // merge Button click and push enter key on input field.
             var submit = Observable.Merge(
                 AddButton.OnClickAsObservable().Select(_ => ToDoInput.text),
                 ToDoInput.OnEndEditAsObservable().Where(_ => Input.GetKeyDown(KeyCode.Return)));
 
+            //对上述合并的stream进行过滤得到（我们感兴趣的）非空的stream流
+            //同时对我们感兴趣的stream添加处理操作
+            //将引发数据变动，（新的stream）
             // add to reactive collection
             submit.Where(x => x != "")
                   .Subscribe(x =>
@@ -40,6 +45,7 @@ namespace UniRx.Examples
                       toDos.Add(item);
                   });
 
+            //上面新的stream 变动
             // Collection Change Handling
             toDos.ObserveCountChanged().Subscribe(x => Title.text = "TODO App, ItemCount:" + x);
             toDos.ObserveAdd().Subscribe(x =>
@@ -52,7 +58,7 @@ namespace UniRx.Examples
             });
 
             // Clear
-            ClearButton.OnClickAsObservable()
+            ClearButton.onClick.AsObservable()
                 .Subscribe(_ =>
                 {
                     var removeTargets = toDos.Where(x => x.GetComponent<Toggle>().isOn).ToArray();
