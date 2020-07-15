@@ -385,11 +385,12 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         currentPath = path;
     }
 
-    public void PredictPathWillChange()
+    public void PredictPathWillChange(Vector2Int newPoint)
     {
         pathChanged = true;
 
-        RX_PathChanged.Value = true;
+        //RX_PathChanged.Value = true;
+        RX_LastClickCell.Value = newPoint;
     }
 
     private void AcceptPathChange()
@@ -712,9 +713,10 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
     public void AimAtTargetEntity(GameEntity target, bool takeAction = true)
     {
         this.targetEntity = target;
+        RX_targetEntity.Value = target;
         if (targetEntity != null && takeAction)
         {
-            actionRemote.Action2Entity(targetEntity);
+            //actionRemote.Action2Entity(targetEntity);
         }
     }
 
@@ -880,7 +882,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
     }
 }
 
-public class GameEntityVisual
+public partial class GameEntityVisual
 {
     private GameObject visualRootGo;
     private Transform rootTrans;
@@ -919,6 +921,7 @@ public class GameEntityVisual
                 SetHPPer(hp);
             }
         });
+        initUniRx();
     }
 
     public void ChangeHPColor(Color c)
@@ -983,24 +986,24 @@ public class GameEntityVisual
     }
 
 
-    private EntityAnimStatus statuse = EntityAnimStatus.None;
+    private EntityAnimStatus status = EntityAnimStatus.None;
 
     public EntityAnimStatus Status
     {
-        get => statuse;
+        get => status;
         set
         {
-            if (statuse == value || statuse == EntityAnimStatus.Death)
+            if (status == value || status == EntityAnimStatus.Death)
                 return;
             statusLoseFocus();
-            statuse = value;
+            status = value;
             statusGainFocus();
         }
     }
 
     private void statusLoseFocus()
     {
-        switch (statuse)
+        switch (status)
         {
 
             case EntityAnimStatus.Battle:
@@ -1021,7 +1024,7 @@ public class GameEntityVisual
 
     private void statusGainFocus()
     {
-        switch (statuse)
+        switch (status)
         {
 
             case EntityAnimStatus.Battle:

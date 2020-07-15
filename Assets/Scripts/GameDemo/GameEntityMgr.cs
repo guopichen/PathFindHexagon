@@ -206,7 +206,7 @@ public class GameEntityMgr : GameServiceBase, GameEntityMgrRemote
             SelectedEntity.AimAtTargetEntity(null);
             if (SelectedEntity.GetActionRemote().AIStrategy == GSNPCStrategy.Empty)
             {
-                SelectedEntity.PredictPathWillChange();
+                SelectedEntity.PredictPathWillChange(obj.Point);
             }
         }
     }
