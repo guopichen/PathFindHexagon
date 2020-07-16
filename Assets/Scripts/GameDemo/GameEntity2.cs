@@ -1,8 +1,8 @@
 ﻿using PathFind;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UniRx;
@@ -24,16 +24,19 @@ public partial class GameEntity
 
     ReactiveProperty<GameEntity> RX_targetEntity = new ReactiveProperty<GameEntity>();
 
+    FloatReactiveProperty RX_moveSpeed = new FloatReactiveProperty(0);
 
     IDisposable Disposable_moveFromA2BPer;//负责改变transform
 
-    const float C_TimeToReachOnePoint = 0.1f;
 
     IDisposable Disposable_movementTimeLine;
+    IObservable<float> RX_reachFragment;
 
+    const float C_TimeToReachOnePoint = .6f;
     #region 
     void initUniRxPrograming()
     {
+
         RX_LastMoveFrom = new Vector2ReactiveProperty(CurrentPoint);
         RX_LastMoveTo = new Vector2ReactiveProperty(CurrentPoint);
         RX_currentPoint = new Vector2ReactiveProperty(CurrentPoint);
@@ -42,7 +45,6 @@ public partial class GameEntity
         {
             RX_targetEntity.Value = null;
         });
-
 
         //如何过滤过快的点击切换路径？
         //假若RX_LastClickCell的输入频率是 0.3s 内来了 10个数据（玩家0.3s内点击了10个可以移动的地方）
@@ -56,14 +58,21 @@ public partial class GameEntity
         {
             mapController.SetStartPoint(Vector2Int.CeilToInt(point));
         });
+
         RX_LastMoveTo.Subscribe((to) =>
         {
             m_Transform.LookAt(HexCoords.GetHexVisualCoords(Vector2Int.CeilToInt(to)));
             RX_moveFromA2BPer.Value = 0;
-
+            RX_moveSpeed.Value = 1;
+        });
+        RX_LastMoveTo.Buffer(RX_LastMoveTo.Where(per => per == RX_currentPoint.Value).Throttle(TimeSpan.FromSeconds(C_TimeToReachOnePoint))).Subscribe(_ =>
+        {
+            RX_moveSpeed.Value = 0;
         });
 
-        RX_moveFromA2BPer.Subscribe(per =>
+
+        #region 控制移动
+        RX_moveFromA2BPer.Skip(1).Subscribe(per =>
         {
             entityVisual.Run2();
             Vector3 fromVisualPos = Coords.PointToVisualPosition(Vector2Int.CeilToInt(RX_LastMoveFrom.Value));
@@ -71,6 +80,7 @@ public partial class GameEntity
             Vector3 v = Vector3.Lerp(fromVisualPos, toVisualPos, RX_moveFromA2BPer.Value);
             m_Transform.position = v;
 
+            //float near_start_or_near_dst = -0.5f + per;
             if (per >= 0.5f)
             {
                 RX_currentPoint.Value = RX_LastMoveTo.Value;
@@ -81,17 +91,32 @@ public partial class GameEntity
             }
         });
 
-        //0 0.5 0.9 1 1 1 0 0.6 1
-        RX_moveFromA2BPer.DistinctUntilChanged().Where(per => per == 1).Subscribe(_ =>
+        var idle = RX_moveSpeed.Where(speed => speed == 0);
+        var confused = idle.Where(_ => { return false; });
+        idle.Subscribe(_ =>
+        {
+            entityVisual.Idle2();
+        });
+
+
+        #endregion
+
+
+        //0 0.5 0.9 1 1 1 0 0.6 1 -> 0 0.5 0.9 1 0 0.6 1
+        RX_reachFragment = RX_moveFromA2BPer.DistinctUntilChanged();
+        RX_reachFragment.Subscribe(_ =>
+        {
+            //Debug.Log(_);
+        });
+        RX_reachFragment.Where(per => per == 1).Subscribe(_ =>
         {
             RXEnterCellPoint(Vector2Int.CeilToInt(RX_currentPoint.Value));
         }
         );
 
-        RX_moveFromA2BPer.Buffer(RX_moveFromA2BPer.Where(per => per == 1).Throttle(TimeSpan.FromSeconds(0.1f))).Where(buffer => buffer.Count >= 2).Subscribe(_ =>
+        RX_moveFromA2BPer.Buffer(RX_moveFromA2BPer.Where(per => per == 1).Throttle(TimeSpan.FromSeconds(0.3f)))
+            .Where(buffer => GameCore.GetGameStatus() == GameStatus.Run && buffer.Count >= 2).Subscribe(_ =>
         {
-            Disposable_moveFromA2BPer?.Dispose();
-            entityVisual.Idle2();
             if (GameEntityMgr.GetSelectedEntity() == this)
                 ShowEyeSight();
         });
@@ -102,44 +127,87 @@ public partial class GameEntity
             //allowMove = false;
             RX_PathChanged.Value = false;
             Disposable_movementTimeLine?.Dispose();
-            //获得要行进的路线   1-2-3-4-5
+
             IList<ICell> path = mapController.CalculatePath();
-            RX_moveAlongPath(path, tellmeHowToMove(UseForClickCellMove));
-            //if (path.Count > 0 && false)
+
+            //Disposable_movementTimeLine = Observable.FromCoroutine(MoveM).Subscribe(unit =>
+            Disposable_movementTimeLine = Observable.FromCoroutine((tok) => MoveMS(path)).SelectMany(aftermove).Subscribe();
+
+            //RX_moveAlongPath(path, tellmeHowToMove(UseForClickCellMove));
+            //Disposable_movementTimeLine = Observable.EveryUpdate().CombineLatest(RX_reachFragment, (frame, per) =>
+            //{
+            //    return per;
+            //}).Where(per => per >= 1).Where(per =>
+            //{
+            //    if (!controllRemote.PTiliMove(1))
+            //    {
+            //        Disposable_movementTimeLine.Dispose();
+            //        return false;
+            //    }
+            //    return true;
+            //}).StartWith(1).Subscribe(h =>
+            //{
+            //    Debug.Log("reach and show next fragment");
+            //    if (path.Count > 1)
+            //    {
+            //        RX_LastMoveFrom.Value = path[0].Point;
+            //        RX_LastMoveTo.Value = path[1].Point;
+            //        path.RemoveAt(0);
+            //    }
+            //    else
+            //    {
+            //        Disposable_movementTimeLine.Dispose();
+            //    }
+            //});
+            //if (path.Count > 0)
             //{
             //    //转变为 (1-2)-(2-3)-(3-4)-(4-5)队列
             //    var rawPath = path.ToObservable<ICell>();
             //    var skipheader = rawPath.Skip(1);
             //    var from_to_pathset = rawPath.Zip(skipheader, (raw, skip) =>
             //    {
-            //        return new { from = raw.Point, to = skip.Point };
+            //        return new FromAndTo(raw.Point, skip.Point);
             //    });
 
+
             //    //要求路线按每隔 XXs 发出1个,其中第一段希望立即发出  这个时间没有基于gamecore状态
-            //    var timeLine = Observable.Interval(TimeSpan.FromSeconds(C_TimeToReachOnePoint)).Take(path.Count - 1).StartWith(1);
-            //    timeLineDispose = timeLine.Zip(from_to_pathset, (time, from_to) =>
+            //    var timeLine = Observable.EveryUpdate().CombineLatest(RX_reachFragment, (frame, per) =>
             //    {
-            //        return new { time = DateTime.Now, from_to = from_to };
-            //    }).Subscribe(time_fromto =>
+            //        return per;
+            //    }).Where(per => per == 1);
+            //    Disposable_movementTimeLine = timeLine.Subscribe(async (__) =>
+            //   {
+            //       var s = await from_to_pathset.ToYieldInstruction();
+            //       Debug.Log(__ + s.from.ToString() + " " + s.to);
+            //       RX_LastMoveFrom.Value = s.from;
+            //       RX_LastMoveTo.Value = s.to;
+
+            //   });
+
+            //    Disposable_movementTimeLine = timeLine.StartWith(1).Zip(from_to_pathset, (time, from_to) =>
             //    {
-            //        var from_to = time_fromto.from_to;
-            //        RX_moveFrom.Value = from_to.from;
-            //        RX_moveTo.Value = from_to.to;
-            //        RX_movePer.Value = 0;
+            //        return new { from_to = from_to, per = time };
+            //    }).Where(zip => zip.per == 1).Do(zip =>
+            //    {
+            //        Debug.Log("change next ");
+            //        var from_to = zip.from_to;
+            //        RX_LastMoveFrom.Value = from_to.from;
+            //        RX_LastMoveTo.Value = from_to.to;
             //    },
             //    () =>
             //    {
-            //    });
+            //    }).Subscribe();
             //}
         });
-        moveWhenClickCell();
+
+
 
         RX_alive.Value = BeAlive();
         var onDeath = RX_alive.Where(alive => !alive);
         onDeath.Subscribe(_ =>
-        {
-            Disposable_moveFromA2BPer.Dispose();
-        }, () => { });
+            {
+                Disposable_moveFromA2BPer.Dispose();
+            }, () => { });
 
 
         //检测当前选中的玩家和第一个被点击的非玩家对象
@@ -149,9 +217,9 @@ public partial class GameEntity
         var selectEntityChooseNPCStream = RX_targetEntity.DistinctUntilChanged();//1 0 2 
 
         onSelectEntityChangedStream.Subscribe(_ =>
-        {
-            Debug.Log(_.entityID);
-        });
+                {
+                    //Debug.Log(_.entityID);
+                });
         selectEntityChooseNPCStream.Subscribe(_ =>
         {
         });
@@ -171,15 +239,17 @@ public partial class GameEntity
         })/*.DistinctUntilChanged()*/.Where(combineResults => /*combineResults != -1*/combineResults != null);
 
         rx_selectPlayer_then_npc.Subscribe(npc =>
-        {
-            Debug.Log(npc.entityID);
-            //move to entity then attack
-            //IList<ICell> path2reachEntity = mapController.GetPathFinder().FindPathOnMap(mapController.GetMap().GetCell(CurrentPoint), mapController.GetMap().GetCell(npc.CurrentPoint), mapController.GetMap());
-            //Disposable_movementTimeLine?.Dispose();
-            //RX_moveAlongPath(path2reachEntity, tellmeHowToMove(UseForBattleMove));
+                {
+                    Debug.Log(npc.entityID);
+                    //move to entity then attack
+                    IList<ICell> path2reachEntity = mapController.GetPathFinder().FindPathOnMap(mapController.GetMap().GetCell(CurrentPoint), mapController.GetMap().GetCell(npc.CurrentPoint), mapController.GetMap());
+                    ForgetMovement();
+                    Disposable_movementTimeLine = Observable.FromCoroutine((tok) => MoveMS(path2reachEntity)).Subscribe();
 
-            Observable.FromCoroutine(playerAction2Entity).Subscribe();
-        });
+                    //RX_moveAlongPath(path2reachEntity, tellmeHowToMove(UseForBattleMove));
+
+                    //Observable.FromCoroutine(playerAction2Entity).Subscribe();
+                });
 
         var rx_selectPlayer_then_mapcell = getFrameStream.CombineLatest(RX_LastClickCell.DistinctUntilChanged(), (frameDuringSelected, selectPoint) =>
         {
@@ -187,10 +257,58 @@ public partial class GameEntity
         }).DistinctUntilChanged();
 
         rx_selectPlayer_then_mapcell.Subscribe(Cell =>
-        {
-            //Debug.Log(Cell);
-        });
+                {
+                    //Debug.Log(Cell);
+                });
 
+    }
+
+    IEnumerator aftermove()
+    {
+        entityVisual.Idle2();
+        yield return null;
+    }
+
+
+    private IEnumerator MoveMS(IList<ICell> path)
+    {
+        while (path != null && path.Count > 1)
+        {
+            if (controllRemote.PTiliMove(1))
+            {
+                ICell start = path[0];
+                ICell next = path[1];
+                RX_LastMoveFrom.Value = start.Point;
+                RX_LastMoveTo.Value = next.Point;
+                while (RX_moveFromA2BPer.Value < 1)
+                {
+                    float f = RX_moveFromA2BPer.Value;
+                    if (GameCore.GetGameStatus() == GameStatus.Run)
+                        f += RX_moveSpeed.Value * Time.deltaTime / (C_TimeToReachOnePoint);
+                    if (f >= 1)
+                        f = 1;
+                    RX_moveFromA2BPer.Value = f;
+                    yield return null;
+                }
+                path.RemoveAt(0);
+            }
+            else
+            {
+                //yield return null;
+                path = null;
+            }
+        }
+    }
+
+    class FromAndTo
+    {
+        public Vector2Int from;
+        public Vector2Int to;
+        public FromAndTo(Vector2Int from, Vector2Int to)
+        {
+            this.from = from;
+            this.to = to;
+        }
     }
 
     private void moveWhenClickCell()
@@ -235,10 +353,7 @@ public partial class GameEntity
     }
 
 
-    void ForgetMovement()
-    {
-        Disposable_movementTimeLine?.Dispose();
-    }
+
     private bool UseForClickCellMove(long frameCnt)
     {
         bool result = controllRemote.PTiliMove(1);
@@ -261,33 +376,43 @@ public partial class GameEntity
         return tili && !targetInAttackSight;
     }
 
+    void ForgetMovement()
+    {
+        Disposable_movementTimeLine?.Dispose();
+    }
+
 
     private void RX_moveAlongPath(IList<ICell> path, Action howtoMoveBetweenCell)
     {
         //当移动到下一个点之后，更新下一段；若完成移动，则销毁观察者
-        Disposable_movementTimeLine = Observable.EveryUpdate().Where(cnt =>
+
+        //RX_reachFragment.Th(2).Where(per=> per == 1);
+        Disposable_movementTimeLine = Observable.EveryUpdate().CombineLatest(RX_reachFragment, (frame, per) =>
         {
-            if (!controllRemote.PTiliMove(1))
-            {
-                Disposable_movementTimeLine.Dispose();
-                return false;
-            }
-            bool reachFrag = RX_moveFromA2BPer.Value >= 1;
-            return reachFrag;
-        }).Subscribe(h =>
-        {
-            if (path.Count > 1)
-            {
-                RX_LastMoveFrom.Value = path[0].Point;
-                RX_LastMoveTo.Value = path[1].Point;
-                path.RemoveAt(0);
-            }
-            else
-            {
-                Disposable_movementTimeLine.Dispose();
-            }
-        });
-        howtoMoveBetweenCell();
+            return per;
+        }).Where(per => per >= 1).Where(per =>
+         {
+             if (!controllRemote.PTiliMove(1))
+             {
+                 Disposable_movementTimeLine.Dispose();
+                 return false;
+             }
+             return true;
+         }).Subscribe(h =>
+         {
+             Debug.Log("reach and show next fragment");
+             if (path.Count > 1)
+             {
+                 RX_LastMoveFrom.Value = path[0].Point;
+                 RX_LastMoveTo.Value = path[1].Point;
+                 path.RemoveAt(0);
+             }
+             else
+             {
+                 Disposable_movementTimeLine.Dispose();
+             }
+         });
+        //howtoMoveBetweenCell();
 
     }
 
