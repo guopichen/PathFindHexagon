@@ -26,9 +26,15 @@ public static class Coords
 
     //static Vector2 manualOffsetForBetterLook = new Vector2(1.2f, 1.5f);
     static Vector2 manualOffsetForBetterLook = Vector2.one;
+    const int positiveYdir = 1;
+    const int negativeYdir = -1;
+    static int runtimeOffSetYdir = positiveYdir;
     public static Vector2 GetSpacing(Vector2Int point)
     {
-        return new Vector2(manualOffsetForBetterLook.x * w * point.x, -h * 0.75f * point.y * manualOffsetForBetterLook.y);
+        return new Vector2(manualOffsetForBetterLook.x * w * point.x,
+            //-h * 0.75f * point.y * manualOffsetForBetterLook.y
+            runtimeOffSetYdir * h * 0.75f * point.y * manualOffsetForBetterLook.y
+            );
     }
 
     public static Vector2 GetOffsetCoord_even_r(Vector2Int point)
@@ -68,12 +74,13 @@ public static class Coords
 
         if (offsettype == OffSetCoordsType.odd_r)
         {
-            y = visualposition.z * (-4 / (3 * h));
+            //y = visualposition.z * (-4 / (3 * h));
+            y = visualposition.z * (runtimeOffSetYdir * 4 / (3 * h));
             x = (visualposition.x - (Mathf.RoundToInt(y) & 1) * 0.5f * w) / w;
         }
         else if (offsettype == OffSetCoordsType.even_r)
         {
-            y = visualposition.z * (-4 / (3 * h));
+            y = visualposition.z * (runtimeOffSetYdir * 4 / (3 * h));
             x = (visualposition.x - (1 - (Mathf.RoundToInt(y) & 1)) * 0.5f * w) / w;
         }
 
@@ -406,11 +413,11 @@ public class CustomHex : MonoBehaviour
 
     private void ssss()
     {
-        Vector3 v= transform.position;
+        Vector3 v = transform.position;
         v.y += 1;
         transform.position = v;
 
-        foreach(KeyValuePair<Vector2Int,CellView> kvp in cellViewSet)
+        foreach (KeyValuePair<Vector2Int, CellView> kvp in cellViewSet)
         {
             Vector2Int key = kvp.Key;
             CellView view = kvp.Value;

@@ -731,6 +731,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        Debug.LogError(Coords.Visualposition2Point(eventData.pointerPressRaycast.worldPosition));
         if (controllType == EntityType.Player)
         {
             if (SelectStatus == GameEntitySelectStatus.Selected)

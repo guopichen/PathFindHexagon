@@ -32,7 +32,7 @@ public partial class GameEntity
     IDisposable Disposable_movementTimeLine;
     IObservable<float> RX_reachFragment;
 
-    const float C_TimeToReachOnePoint = .6f;
+    const float C_TimeToReachOnePoint = .2f;
     #region 
     void initUniRxPrograming()
     {
@@ -65,7 +65,7 @@ public partial class GameEntity
             RX_moveFromA2BPer.Value = 0;
             RX_moveSpeed.Value = 1;
         });
-        RX_LastMoveTo.Buffer(RX_LastMoveTo.Where(per => per == RX_currentPoint.Value).Throttle(TimeSpan.FromSeconds(C_TimeToReachOnePoint))).Subscribe(_ =>
+        RX_LastMoveTo.Buffer(RX_LastMoveTo.Where(point => point == RX_currentPoint.Value).Throttle(TimeSpan.FromSeconds(C_TimeToReachOnePoint))).Subscribe(_ =>
         {
             RX_moveSpeed.Value = 0;
         });
@@ -244,7 +244,7 @@ public partial class GameEntity
                     //move to entity then attack
                     IList<ICell> path2reachEntity = mapController.GetPathFinder().FindPathOnMap(mapController.GetMap().GetCell(CurrentPoint), mapController.GetMap().GetCell(npc.CurrentPoint), mapController.GetMap());
                     ForgetMovement();
-                    Disposable_movementTimeLine = Observable.FromCoroutine((tok) => MoveMS(path2reachEntity)).Subscribe();
+                    Disposable_movementTimeLine = Observable.FromCoroutine((tok) => MoveMS(path2reachEntity)).SelectMany(aftermove).Subscribe();
 
                     //RX_moveAlongPath(path2reachEntity, tellmeHowToMove(UseForBattleMove));
 
