@@ -10,10 +10,15 @@ namespace PathFind
         public IList<ICell> FindPathOnMap(ICell cellStart, ICell cellEnd, IMap map)
         {
             var findPath = new List<ICell>();
-            if (cellStart == null || cellEnd == null) return findPath;
+            if (cellStart == null || cellEnd == null)
+            {
+                Debug.Log("没有找到路！");
+                return findPath;
+            }
 
             var mapSize = map.GetMapSize();
             var mapDic = map.GetCells();
+            Debug.Log($"=>FindPathOnMap mapSize:{mapSize}");
 
             //var opened = new HashSet<ICell>();
             //var closed = new HashSet<ICell>();
@@ -82,6 +87,7 @@ namespace PathFind
                     var movePosition = moveList[i];
                     if (mapRect.Contains(movePosition))
                     {
+                        Debug.Log("movePosition: " + movePosition);
                         var element = mapDic[movePosition];
                         if (closed.Contains(element) == false && element.IsWall == false)
                         {

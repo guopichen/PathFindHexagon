@@ -104,6 +104,7 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         currentCell = mapController.GetRandomCell().Point;
         var mapSize = mapController.GetMapSize();
         //this.transform.position = HexCoords.GetHexVisualCoords(currentCell, mapSize);
+        Debug.Log("init cell: " + currentCell);
         this.transform.position = Coords.PointToVisualPosition(currentCell);
 
         //设定职业
@@ -427,6 +428,8 @@ public partial class GameEntity : MonoBehaviour, GameEntityRemote, IGameEntityIn
         Neighbors.GetCubeRange(CurrentCubePoint, runtimeData.attackSight, attackRangeCubeSpace);
         Neighbors.GetCubeRange(CurrentCubePoint, runtimeData.pursueSight, pursueRangeCubeSpace);
         Neighbors.GetCubeRange(CurrentCubePoint, runtimeData.eyeSight, eyesightRangeCubeSpace);
+        Debug.Log($"calculateRangeOnEnterPoint: CurrentPoint:{CurrentPoint},eyesightRange:{eyesightRangeCubeSpace.Count}" );
+
     }
 
     private void unityTest()
@@ -731,7 +734,8 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.LogError(Coords.Visualposition2Point(eventData.pointerPressRaycast.worldPosition));
+        //Debug.LogError(Coords.Visualposition2Point(eventData.pointerPressRaycast.worldPosition));
+        Debug.Log($"GameEntity click point：{Coords.Visualposition2Point(eventData.pointerPressRaycast.worldPosition)}, {eventData.pointerPressRaycast.worldPosition}");
         if (controllType == EntityType.Player)
         {
             if (SelectStatus == GameEntitySelectStatus.Selected)
@@ -794,6 +798,7 @@ public partial class GameEntity : IPointerEnterHandler, IPointerClickHandler, IP
             cellview?.SetCellViewStatus(CellViewStatus.EyeSight);
 
         }
+        //Debug.Log($"UpdateCurrentEyeSight eyesightRange:{eyesightRangeCubeSpace.Count}, allowClickSetCnt:{CellSelector.allowClickSet.Count}");
 
 
     }

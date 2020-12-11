@@ -9,10 +9,10 @@ MeshCollider:
   m_GameObject: {fileID: 7931148754953480495}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
+  m_Enabled: 0
+  serializedVersion: 4
   m_Convex: 0
-  m_CookingOptions: 14
+  m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
 --- !u!1001 &7931148754953514895
 PrefabInstance:
@@ -21,51 +21,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 100000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_Name
-      value: stone Variant
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 400000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_ReceiveShadows
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_CastShadows
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_LightProbeUsage
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_ReflectionProbeUsage
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_DynamicOccludee
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
-      propertyPath: m_MotionVectors
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: -927199367670048503, guid: 10757b2c7c8a29f4d9457637ad3484a6,
-        type: 3}
-      propertyPath: m_Name
-      value: stone
-      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 10757b2c7c8a29f4d9457637ad3484a6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -120,6 +75,51 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 10757b2c7c8a29f4d9457637ad3484a6,
+        type: 3}
+      propertyPath: m_Name
+      value: stone
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_Name
+      value: stone Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}
+      propertyPath: m_MotionVectors
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 9500000, guid: 10757b2c7c8a29f4d9457637ad3484a6, type: 3}

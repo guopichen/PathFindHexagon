@@ -58,15 +58,15 @@ namespace PathFind
         public void SetCellViewStatus(CellViewStatus status)
         {
             viewStatus = status;
-            if ((status & CellViewStatus.EyeSight) == CellViewStatus.EyeSight)
-            {
-                m_renderer.materials = replace;
-            }
+            //if ((status & CellViewStatus.EyeSight) == CellViewStatus.EyeSight)
+            //{
+            //    m_renderer.materials = replace;
+            //}
 
-            if (status == CellViewStatus.None)
-            {
-                m_renderer.materials = materials;
-            }
+            //if (status == CellViewStatus.None)
+            //{
+            //    m_renderer.materials = materials;
+            //}
         }
     }
 }

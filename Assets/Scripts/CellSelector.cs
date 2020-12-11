@@ -30,38 +30,44 @@ namespace PathFind
             var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : MouseButton.None;
             if (mouseButton != MouseButton.None)
             {
+                //====
                 var ray = m_camera.ScreenPointToRay(Input.mousePosition);
-                var cell = Raycast(ray);
-                if (cell != null)
-                {
-                    bool allowClick = false;
-                    allowClickSet.TryGetValue(cell.GetPoint(), out allowClick);
-                    if (allowClick == false)
-                        return;
+                Vector2Int point = RaycastGetPoint(ray);
+                bool allowClick = false;
+                allowClickSet.TryGetValue(point, out allowClick);
+                Debug.Log( $"CellSelector click point：{point},allowClick:{allowClick}");
+                if (allowClick == false)
+                    return;
+                OnEndPoint?.Invoke(point);
+                //====
+                //var ray = m_camera.ScreenPointToRay(Input.mousePosition);
+                //var cell = Raycast(ray);
+                //if (cell != null)
+                //{
+                //    bool allowClick = false;
+                //    allowClickSet.TryGetValue(cell.GetPoint(), out allowClick);
+                //    if (allowClick == false)
+                //        return;
 
-                    var point = cell.GetPoint();
-                    OnEndPoint?.Invoke(point);
-                }
+                //    var point = cell.GetPoint();
+                //    OnEndPoint?.Invoke(point);
+                //}
+
             }
 #endif
-
-
         }
 
-        private void test()
+        Vector2Int RaycastGetPoint(Ray ray)
         {
-            var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : Input.GetMouseButtonDown(1) ? MouseButton.Right : MouseButton.None;
-            if (mouseButton != MouseButton.None)
+            Debug.DrawRay(ray.origin, ray.direction, Color.red);
+
+            var result = default(Vector2Int);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit, 100f))
             {
-                var ray = m_camera.ScreenPointToRay(Input.mousePosition);
-                var cell = Raycast(ray);
-                if (cell != null)
-                {
-                    var point = cell.GetPoint();
-                    if (mouseButton == MouseButton.Left) OnStartPoint?.Invoke(point);
-                    if (mouseButton == MouseButton.Right) OnEndPoint?.Invoke(point);
-                }
+                result = Coords.Visualposition2Point(hit.point);
             }
+            return result;
         }
 
         private CellView Raycast(Ray ray)
@@ -83,5 +89,20 @@ namespace PathFind
             OnStartPoint?.Invoke(point);
         }
 
+        private void test()
+        {
+            var mouseButton = Input.GetMouseButtonDown(0) ? MouseButton.Left : Input.GetMouseButtonDown(1) ? MouseButton.Right : MouseButton.None;
+            if (mouseButton != MouseButton.None)
+            {
+                var ray = m_camera.ScreenPointToRay(Input.mousePosition);
+                var cell = Raycast(ray);
+                if (cell != null)
+                {
+                    var point = cell.GetPoint();
+                    if (mouseButton == MouseButton.Left) OnStartPoint?.Invoke(point);
+                    if (mouseButton == MouseButton.Right) OnEndPoint?.Invoke(point);
+                }
+            }
+        }
     }
 }

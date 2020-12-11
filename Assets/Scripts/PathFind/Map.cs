@@ -11,6 +11,34 @@ namespace PathFind
 
         private Dictionary<Vector2Int, ICell> _cells;
         private Vector2Int _mapSize;
+
+        public Map(List<Vector2Int> terrainPosDatas, int sizeX, int sizeY)
+        {
+            _cells = new Dictionary<Vector2Int, ICell>();
+            _mapSize = new Vector2Int(sizeX, sizeY);
+
+            for (int x = 0; x < sizeX; x++)
+            {
+                for (int y = 0; y < sizeY; y++)
+                {
+                    var point = new Vector2Int(x, y);
+                    var cell = new Cell(point);
+                    _cells[point] = cell;
+                }
+            }
+            //    foreach (var terrainPosData in terrainPosDatas)
+            //{
+            //    var point = new Vector2Int(terrainPosData.x, terrainPosData.y);
+            //    var cell = new Cell(point);
+            //    //if (randowWall)
+            //    //{
+            //    //    if (Random.Range(0, 100) > 70) cell.SetIsWall(true);
+            //    //}
+            //    _cells[point] = cell;
+            //}
+
+        }
+
         public Map(int sizeX, int sizeY)
         {
             _cells = new Dictionary<Vector2Int, ICell>();
@@ -69,7 +97,9 @@ namespace PathFind
 
         public ICell GetCell(Vector2Int point)
         {
-            return _cells[point];
+            ICell cell;
+            _cells.TryGetValue(point, out cell);
+            return cell;
         }
 
 

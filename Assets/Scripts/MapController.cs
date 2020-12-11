@@ -1,6 +1,8 @@
-﻿using PathFind;
+﻿using Newtonsoft.Json;
+using PathFind;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace PathFind
@@ -15,6 +17,9 @@ namespace PathFind
         [SerializeField] private CellAssets m_prefabs = null;
         [SerializeField] private int m_mapSizeX = 3;
         [SerializeField] private int m_mapSizeY = 3;
+
+        [Header("地图的唯一ID")]
+        public string MapID;
 
         public int chunkWidth;
         public int chunkHeight;
@@ -33,17 +38,63 @@ namespace PathFind
             m_cellSelector.OnStartPoint += OnSetPointStart;
             m_cellSelector.OnEndPoint += OnSetPointEnd;
 
+            //
+            ClientTerrainExportSet mapDataSet = LoadCustomData();
+            List<Vector2Int> terrainPosDatas = new List<Vector2Int>(mapDataSet.terrain.Count);
+            Vector2Int tmpMapSize = new Vector2Int();
+            foreach (var terrainDatain in mapDataSet.terrain)
+            {
+                if (terrainDatain.x > tmpMapSize.x)
+                    tmpMapSize.x = terrainDatain.x;
+                if (terrainDatain.y > tmpMapSize.y)
+                    tmpMapSize.y = terrainDatain.y;
+                terrainPosDatas.Add(new Vector2Int(terrainDatain.x, terrainDatain.y));
+            }
+            Map map =
+                new Map(terrainPosDatas, m_mapSizeX, m_mapSizeX);
+            //m_mapSizeX = mapDataSet.xRange;
+            //m_mapSizeY = mapDataSet.yRange;
+
             _pathFinder = new PathFinder();
             _cellsView = new Dictionary<Vector2Int, CellView>();
-            Map map =
-            new Map(m_mapSizeX, m_mapSizeY);
+            //Map map =
+            //new Map(m_mapSizeX, m_mapSizeY);
             _map = map;
             map.DivedIntoChuns(chunkWidth, chunkHeight);
             var mapSize = GetMapSize();
 
             //chunkGenerat(mapSize);
-
             normalGenerate(mapSize);
+        }
+
+        private ClientTerrainExportSet LoadCustomData()
+        {
+            if (!File.Exists(GetCustomDataPath()))
+            {
+                Debug.LogError("没有该地图文件：" + MapID);
+                return null;
+            }
+            string str = File.ReadAllText(GetCustomDataPath());
+            //
+            Debug.Log("地图文件数据：" + str);
+            ClientTerrainExportSet mapDataSet = JsonConvert.DeserializeObject<ClientTerrainExportSet>(str);
+            Debug.Log("地图数据：" + JsonConvert.SerializeObject(mapDataSet));
+            return mapDataSet;
+
+        }
+
+        public string GetCustomDataPath()
+        {
+            return dirName() + getFileName();
+        }
+
+        string dirName()
+        {
+            return Application.dataPath + "\\..\\ExportTileMap\\DataGen\\";
+        }
+        string getFileName()
+        {
+            return "Map_" + MapID + ".txt";
         }
 
         private void chunkGenerat(Vector2Int mapSize)
@@ -112,6 +163,7 @@ namespace PathFind
         void OnSetPointEnd(Vector2Int point)
         {
             _cellEnd = _map.GetCell(point);
+            Debug.Log("OnSetPointEnd: " + point);
             OnEndCellSelect?.Invoke(_cellEnd);
             //Calculate();
         }
@@ -125,7 +177,10 @@ namespace PathFind
         public IList<ICell> CalculatePath()
         {
             var path = _pathFinder.FindPathOnMap(_cellStart, _cellEnd, _map);
-
+            if(_cellEnd != null)
+            {
+                Debug.Log($"==>CalculatePath start:{_cellStart.Point},end:{_cellEnd.Point},cnt:{path.Count}");
+            }
             return path;
         }
 
@@ -160,7 +215,12 @@ namespace PathFind
         {
             Vector2Int size = _map.GetMapSize();
             Vector2Int point = new Vector2Int(UnityEngine.Random.Range(0, size.x), UnityEngine.Random.Range(0, size.y));
-            return _map.GetCell(point);
+            ICell cell = _map.GetCell(point);
+            if ( null == cell)
+            {
+                return _map.GetCell(new Vector2Int(m_mapSizeX, m_mapSizeY+1));
+            }
+            return cell;
         }
 
         public IPathFinder GetPathFinder()
