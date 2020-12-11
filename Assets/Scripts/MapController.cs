@@ -32,35 +32,41 @@ namespace PathFind
 
         public GameObject viewer;
 
+        Map CreateMap()
+        {
+            Map map = null;
+            ClientTerrainExportSet mapDataSet = LoadCustomData();
+            if (mapDataSet==null)
+            {
+                map = new Map(m_mapSizeX, m_mapSizeY);
+            }
+            else
+            {
+                List<Vector2Int> terrainPosDatas = new List<Vector2Int>(mapDataSet.terrain.Count);
+                foreach (var terrainDatain in mapDataSet.terrain)
+                {
+                    if (terrainDatain.x > m_mapSizeX)
+                        m_mapSizeX = terrainDatain.x;
+                    if (terrainDatain.y > m_mapSizeY)
+                        m_mapSizeY = terrainDatain.y;
+                    terrainPosDatas.Add(new Vector2Int(terrainDatain.x, terrainDatain.y));
+                }
+                map = new Map(terrainPosDatas, m_mapSizeX, m_mapSizeY);
+            }
+            map.DivedIntoChuns(chunkWidth, chunkHeight);
+            return map;
+        }
+
         private void Start()
         {
             GameCore.RegistOtherServices<MapController>(this);
             m_cellSelector.OnStartPoint += OnSetPointStart;
             m_cellSelector.OnEndPoint += OnSetPointEnd;
 
-            //
-            ClientTerrainExportSet mapDataSet = LoadCustomData();
-            List<Vector2Int> terrainPosDatas = new List<Vector2Int>(mapDataSet.terrain.Count);
-            Vector2Int tmpMapSize = new Vector2Int();
-            foreach (var terrainDatain in mapDataSet.terrain)
-            {
-                if (terrainDatain.x > tmpMapSize.x)
-                    tmpMapSize.x = terrainDatain.x;
-                if (terrainDatain.y > tmpMapSize.y)
-                    tmpMapSize.y = terrainDatain.y;
-                terrainPosDatas.Add(new Vector2Int(terrainDatain.x, terrainDatain.y));
-            }
-            Map map =
-                new Map(terrainPosDatas, m_mapSizeX, m_mapSizeX);
-            //m_mapSizeX = mapDataSet.xRange;
-            //m_mapSizeY = mapDataSet.yRange;
-
             _pathFinder = new PathFinder();
             _cellsView = new Dictionary<Vector2Int, CellView>();
-            //Map map =
-            //new Map(m_mapSizeX, m_mapSizeY);
-            _map = map;
-            map.DivedIntoChuns(chunkWidth, chunkHeight);
+
+            _map = CreateMap();
             var mapSize = GetMapSize();
 
             //chunkGenerat(mapSize);
@@ -71,7 +77,7 @@ namespace PathFind
         {
             if (!File.Exists(GetCustomDataPath()))
             {
-                Debug.LogError("没有该地图文件：" + MapID);
+                Debug.LogWarning("没有该地图文件：" + MapID);
                 return null;
             }
             string str = File.ReadAllText(GetCustomDataPath());
@@ -163,8 +169,12 @@ namespace PathFind
         void OnSetPointEnd(Vector2Int point)
         {
             _cellEnd = _map.GetCell(point);
-            Debug.Log("OnSetPointEnd: " + point);
-            OnEndCellSelect?.Invoke(_cellEnd);
+            if(_cellEnd != null)
+            {
+                Debug.Log("OnSetPointEnd: " + point);
+                OnEndCellSelect?.Invoke(_cellEnd);
+            }
+
             //Calculate();
         }
 
@@ -218,7 +228,8 @@ namespace PathFind
             ICell cell = _map.GetCell(point);
             if ( null == cell)
             {
-                return _map.GetCell(new Vector2Int(m_mapSizeX, m_mapSizeY+1));
+                // 可能有空的cell，递归随机
+                return GetRandomCell();
             }
             return cell;
         }

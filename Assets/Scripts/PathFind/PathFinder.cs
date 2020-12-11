@@ -51,6 +51,7 @@ namespace PathFind
                 moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 4));
                 moveList.Add(Neighbors.oddr_neighbor(minOpened.Point, Neighbors.HexCellDirection.right + 5));
 
+                #region xxx
                 //if (minOpened.Point.y % 2 != 0)
                 //{
                 //    var n1 = new Vector2Int(minOpened.Point.x, minOpened.Point.y - 1);
@@ -81,15 +82,16 @@ namespace PathFind
                 //    moveList.Add(n5);
                 //    moveList.Add(n6);
                 //}
+                #endregion
 
                 for (int i = 0; i < moveList.Count; i++)
                 {
                     var movePosition = moveList[i];
                     if (mapRect.Contains(movePosition))
                     {
-                        Debug.Log("movePosition: " + movePosition);
-                        var element = mapDic[movePosition];
-                        if (closed.Contains(element) == false && element.IsWall == false)
+                        //var element = mapDic[movePosition];
+                        var element = map.GetCell(movePosition);
+                        if (element != null && closed.Contains(element) == false && element.IsWall == false)
                         {
                             var isOpened = opened.Contains(element);
                             var addDistance = 10;

@@ -17,25 +17,16 @@ namespace PathFind
             _cells = new Dictionary<Vector2Int, ICell>();
             _mapSize = new Vector2Int(sizeX, sizeY);
 
-            for (int x = 0; x < sizeX; x++)
+            foreach (var terrainPosData in terrainPosDatas)
             {
-                for (int y = 0; y < sizeY; y++)
-                {
-                    var point = new Vector2Int(x, y);
-                    var cell = new Cell(point);
-                    _cells[point] = cell;
-                }
+                var point = new Vector2Int(terrainPosData.x, terrainPosData.y);
+                var cell = new Cell(point);
+                //if (randowWall)
+                //{
+                //    if (Random.Range(0, 100) > 70) cell.SetIsWall(true);
+                //}
+                _cells[point] = cell;
             }
-            //    foreach (var terrainPosData in terrainPosDatas)
-            //{
-            //    var point = new Vector2Int(terrainPosData.x, terrainPosData.y);
-            //    var cell = new Cell(point);
-            //    //if (randowWall)
-            //    //{
-            //    //    if (Random.Range(0, 100) > 70) cell.SetIsWall(true);
-            //    //}
-            //    _cells[point] = cell;
-            //}
 
         }
 
